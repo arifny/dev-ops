@@ -1,0 +1,322 @@
+curl https://omnitruck.chef.io/installsh | sudo bash -s -- -P chefdk -c stable -v 0.18.30
+yum install vim -y
+
+lab1
+-create setup.rb
+touch setup.rp
+
+package 'tree' do
+ action :install
+end
+package 'ntpdc
+cci
+kniknife' 
+
+file 'etc/motd' do
+  content 'This server is the property of tech'
+  action :create
+  owner 'root'
+  group 'root'
+end
+service 'ntpd' do
+ action [:enable, :start ]
+end
+
+cookbooks
+ recepies, attribute, files, templates, libs,version Control
+chef generate --help
+mkdir cookbooks
+chef generate cookbook cookbooks/workstation
+knife cookbook create cookbooks/workstation
+tree
+berksfile - depndency
+chefignore
+metadata.rb verrsion, dependency
+readme.md
+recipies
+spec
+test
+
+package 'git' do
+  action :install
+end
+which git
+cd workstation
+git init
+git status
+git add .
+git commit -m "initial workstartion commit"
+version '0.1.0' majaor.minor.patch
+
+lab2
+generate a cookbook apache
+install apache, write hello, start service
+
+chef generate cookbook cookbooks/apache
+chef generate recepe cookbooks/apache/ server
+package 'httpd' do
+ action :install
+
+ohai creates node object
+=====
+IPADDRESS: #{node['ipaddress']}
+HOSTNAME: #{node['hostname']}
+
+template resorce
+a template resource must be use in recipe
+an embdded ruby template must add
+
+chef generate template cookbooks/workstation/ motd
+this server is property of Chef
+ HOSTNAME: <%= node['hostname'] %>
+ IPADRESS: <%= node['hostname'] %> 
+
+template 'etc/motd' do
+   source 'motd.erb'
+   action:create
+end
+
+lab4
+add index.html into template
+
+cookbook_file -> #static file
+cookbook_file '/var/www/html/index.html'
+  source 'index.html'
+end
+chef generate file index.html
+
+remotefile resorce
+
+remote_file '/var/www/html/robin.png' do
+  source 'http://google.png'
+
+Execute
+=======
+bash "inline script" do
+  user "root"
+  code "mkdir -p /var/www/mysites/ && chown -R /var/www/mysite"
+  not_if '[-d /var/www/mysites/]' #gaurd
+  not_if do
+     File.directory?('/varr/www/mysites/')
+   end
+ // only_if
+end
+execute "run a script" do
+  user"root"
+  command './myscript.sh'
+  command <<-EOH
+  mkdir -p /var/www/mysitrs/
+  EOH
+  not_if
+end
+docs.chef.io
+
+----------------------
+adduser
+
+user 'user1'do
+  comment 'user1'
+  uid '123'
+  home '/home/user1'
+  shell '/bin/bash'
+end
+group 'admins' do
+  members 'user1'
+  append true
+end
+
+notifications
+------------------
+notifie :action 'resource[name], timer
+:before, delayed imadiately
+
+service 'httpd' do
+ action [:enable, :start]
+ subscripts :restart, 'template[/var/www/index.html'], :immediately
+
+susbscribs : action, resource[name], : timer
+notifies :restart, 'service[httpd]', :immediately
+
+
+tools
+--------------
+chef exec rspec
+berks --help
+rubocop ... for standard
+foodcritic ...common best prectices
+
+Test kitchen
+=============
+.kitchen.yml
+kitchen init
+kitchen list
+kitchen create
+kitchen converge
+kitchen login
+curl localhost
+kitchen verify
+test default_testrb
+describe port(80) do
+  it { should be_listening}
+end
+describe command('curl localhost') do
+  it(:stdout) { should match(/hello, worrl!/)}
+
+look for inspect docs
+
+unit testing chefspec
+chef exec rspec
+
+require 'spec_helper'
+describe 'apache::deault' do
+  context 'when all attributes are default, on an unspecified platforrm' do
+   let(:chef_run)do
+     runner=chefSpec::ServerRunner.new
+     runnerr.convrge(decrripbed_recipe)
+   end
+   it 'installs the correct package' do
+     expect(chef_run).to start_service('httpd')
+   end
+   it 'creates an default html file' do
+      expect(che_run).to create_trmplate('/varr/www/html/index.html')
+   end
+   it 'starrts the service' do
+      expect(chef_rrun).o start_service('httpd')
+   end
+   
+   it 'enables th service' do
+     expect(chef_run).to enable_service('httpd')
+
+chef server
+Bootstrap
+knife bootstap FQDN -i .pem --sudo -N ode_name
+knif node run_list add web1 "recipe[workstation],recipe[apache]"
+knife node sho web1
+
+HAProxy cookbook
+chef generate cook cookbooks/myhaproxy
+vim metadata.rb
+
+
+version '0.1.0'
+
+depends 'haproxy', '=2.0.0'
+deault.rb
+
+node.default['haproxy']['memeber'] = [
+  { "hostname" => 'web1',
+    "ipaddress => '192.68.10.43,
+    "port" = 80,
+    "ssl_port" => 80
+  },{ "hostname" => 'web1',
+    "ipaddress => '192.68.10.45,
+    "port" = 80,
+    "ssl_port" => 80
+  }]
+include_recipe "haproxy::manual"
+
+inside cookbook
+Burkshelf
+===========
+berks init   # for the dependent file
+berks install
+berks upload
+berks upload --force
+
+setup terminal
+
+cd /etc/cheftou-server
+amin.pem
+cheef-validator.pem
+che-webui.pem
+scp admin.pem root@chefwork:
+mkdirr .chef / all file
+knife  configure -i
+put http address
+knife ssl fetch
+knife ssl check
+
+in node
+---------------------
+mkdir /etc/chef
+scp chef-valiator.pem root@node:
+knife ssl fetch -s htps://cheserver/
+cd /etc/che/
+
+file client.rb
+log_lee :info
+log_location STDOUT
+chre_server_url "https://chefserverr.com:443"
+trusted_certs_dir "/root/.chef/trusted_certs"
+
+chef-client -S https://chef.com -K /etc/chef/che-validator.pem
+
+
+# creating recipe for setup
+
+package 'tree' do
+  action:install
+end
+
+pckage 'ntp'
+
+file '/etc/motd' do
+   content 'This server is the property of Arif'
+   action :create
+   owner 'ubuntu'
+   group 'ubuntu'
+end
+
+service 'ntpd' do
+   action [:enable, :start]
+
+end
+
+knife node run_list add web1 'recipe[workstaton::setup]'
+sudo che-client -i 60
+ps auxw | grep chef-client
+
+********chef-client cookbook ********
+chef generate cookbook mychef-client
+
+vim metadata file
+
+depends 'chef-client', '=7.0.2'
+recepies/default
+
+node.default['chef_client']['interval']='300'
+node.default['chef_client']['spaly']='60'
+include_recipe 'chef-client::defaul'
+
+berks install
+berks upload
+
+knife node run_list set web1 "recie[mychef-client]","recipe[apache]"
+
+roll
+=================
+knife role --help
+vim roles/web.rb
+
+name 'web'
+description 'web server role'
+run_list "recipe[workstation","recipe[apache]"
+default_attributes 'apache-test' =>{
+  'attribute1 => 'hello from atrribur1',
+  'attribute2' => 'you are great'
+}
+knife role from file roles/web.rb
+knife role list
+knife node run_list set web1 "role[server]"
+knife role run_list add server "recipe[workstation::setup]","recipe[apache::server]"
+
+knife ssh/ winrm --help
+
+
+
+
+
+  
+
+
+

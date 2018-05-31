@@ -1,0 +1,840 @@
+Docker ce - community version
+docker version 1.12.6
+curl -ssl https://get.docker.com/ | sh
+
+store.docker.com 
+
+install docker in ubuntu 16.
+''
+sudo yum update -y
+yum install -y docker
+''
+sudo usermod -aG docker ubuntu  # adding user as sudo
+
+install docker machine and docker compose
+curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+install git
+
+sudo systemctl start docker 
+docker version
+docker info
+docker /cmd you could run
+docker command subcommand
+docker container run / new way to run
+
+docker container run --publish  -d 80:80 nginx
+
+docker ls
+container stop continer id
+
+docker contianer ls -a \ show all container
+
+Docker Swarm 
+
+sudo service docker start
+docker build -t imagenme
+docker images
+
+sudo usermod -aG docker bret //admin sudo in docker group
+
+docker login --username abna --password abna123
+docker tag my-image username/my-repo
+docker push username/my-repo
+docker pull username/my-repo
+docker pull abna/images
+docker run --rm -p 80:80 abna/images  # remove the container when exit
+
+
+docker machine //from docker documentation
+https://github.com/docker/copose/release
+
+docker compose
+
+
+
+
+doker container run --publish 80:80 --detach ngnex //run in background
+
+ngnex:version
+docker container ls //list of conainers
+
+docker container ls -a
+docker containner stop container id 
+doker container run --publish 80:80 --detach ngnex --name webhost
+docker container logs webhost
+
+docker container top webhost / see the process in the container
+
+docker container rm container id
+docker containerr rm -f container id
+
+docker run --name mongodb -d mongo / run mongo database
+docker ps or docker container ls/ show the process running
+docker top
+ps aux / show all the running procss
+docker start mongodb
+--env or -e / env variables
+docker container rm id / removing container
+
+multiple container
+**************************
+
+
+************
+docker
+docker container logs db # copy the root pass
+ 
+docker container run -d --name proxy -p 80:80 nginx
+
+curl localhost nginx
+curl localhost:8080 apache
+docker container stop ids
+docker ps
+docker ps -a
+docker webserver logs
+
+test
+curl localhot
+curl localhost:8080
+
+************
+docker container top # process list inside the container
+docker container instpact #details of contaier config (jeson formate)
+docker container stats / for perforance of all containers
+
+
+docker container run -it --name proxy nginx bash (i for interective t psudo tty(open session like ssh))
+
+ls -al
+exit
+
+dockr container run -it --name ubuntu  ubuntu #use ubuntu
+
+apt-get install curl
+currl google.com
+docker container start -ai ubuntu /run again with interective mode
+docker container exec -it mysql bash ( in existing container)
+-f for forcefully delete
+
+
+docker pull alpine
+docker image ls
+docker conainer run -it alpine base # show erro base not present
+docker conainer run -it alpine sh # could install bash with pk
+
+
+
+**************
+ocker containrer run -p *):80 --name webhost -d nginx
+docker container port webhost #what ports are exposed
+docker container insprct --format '{{ .NetworkSettings.IPAddress }}' webhost
+  to get ip
+ipconfig en0
+
+network
+------
+
+default network is bridge network ( or docker0)
+docker network ls
+dockerr network inspect bridge 
+
+host network directly conect container with the host. # improves performance
+docker nertwork create my_app_net
+docker container run -d --name new_nginx --network my_app_net nginx
+docker network inspect my_app_net
+docker network connect networkid contianer id
+disconnect
+
+doker containrer exec -it my_ngninx ping new_nginx
+docker container exrrc -it mu_ninx ping new_nginx
+--link to add contianer in bridge
+
+******************
+
+DNS
+
+docker container run -d --name my_nainx --network my_app_net ngnix
+==============
+
+Assignment
+=================
+ubuntu:14.04 
+centos:7
+ubuntu: apt-get update && apt-get install -y curl
+centos: yum update curl
+
+curl --version
+
+assignment - DNS RR test
+##########################3
+docker netwoke create test
+
+
+docker container run -d --net test --net-alias search elasticsearch:2   #adding container to alias
+docker container run --rm --net test alpin nslookup search    # shows the dn entries
+dockerr container run --rm --net ude centos curl -s sarch:9200 run over and over to see differnt name
+docker container ls
+docker container rm -f suspicious_wescoff compassionate_panini
+
+--------------------------------------------------------------------------
+
+
+@@@@@@@ IMAGE
+docker image ls
+doker history nginx:lates # show the image layer
+
+image layer
++++++++++++++++=
+docker image inspect #details about image
+docker image tag nginx new_nginx:testing # to give a new tag
+docker login 
+abna/abna123
+docker image push abna/new_nginx:testing
+
+######################## Dockerfile or -f to spciffy any file
+
+FROM 
+ENV  # set up env veriable
+RUN
+RUN ln -sf /dev/stdout /var/log/nginx/access.log\
+    && ln -sf /dev/stderr /varr/log/nginx/error.log
+EXPOSE
+CMD # runs during docker comman
+docker image build -t customnginx .
+
+
+FROM nginx:latest
+
+WORKDIR /usr/share/nginx/html #cd to dirctory always use worrkdir
+
+COPY index.html index.html
+
+docker container run -p 80:80 --rm nginx
+docker image build -t nginx-wih-html
+docker container run -p 80:80 --rm nginx-wih-html
+
+Assignment
+===================
+
+FROM node:6-alpine
+EXPOSE 3000
+RUN apk add --update tini
+RUN mkdir -p /usr/src/app
+WORKDIR /user/src/app
+COPY package.json package.json
+RUN npm intsall && npm cache clean
+COPY . .
+CMD ["tini", "--", "node", "./bin/www"]
+docker build -t testnode .
+docker containerr run --rm -p 80:3000 testnode
+docker tag testnode abna/testing
+docker push abna/testing
+docker image rm abna/testing
+docker container run --rm -p 80:3000 abna/testing
+
+volume && bind mounts
+===================
+docker image inspect mysql
+docker volume ls
+docker volume create
+
+
+ 
+docker container run -d --name mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=True -v mysql:db/var/lib/mysql mysql
+bind mount
+============
+....run -v /user/folder:/patht to container
+docker container run -d --name nginx -p 80:80 -v $(pwd):/usr/share/nginx/html nginx
+docker container run -d --name nginx2 -p 8080:80  nginx
+
+Assignment
+docker container rurn -d --name psql -v psql:/var/lib/posgresql/data prostgres:96.1
+
+docker logs -f psql
+
+docker container stop contianer
+docker container rurn -d --name psql2 -v psql:/var/lib/posgresql/data prostgres:96.2
+docker container ps -a
+docker container volume ls
+docker container logs container id
+*********************8
+
+Assignment: Bing Mounts
+---------------------------
+docker run -p 80:4000 -v $(pwd):/site bretfisher/jekyll-server
+
+Docker-compose
+==============
+yaml
+
+continers
+network
+volumes
+----------
+cli tool docker-compose
+docker-compose --help
+
+docker-compose.yml
+docker-compose -f
+service
+  servicename
+    image
+    command
+    volumes
+  servicename2:
+network
+volume
+docker-compose up
+docker-compose down # stop all contianer and remove
+----
+vesion: '3'
+services:
+  proxy:
+    image: nginx:1.11
+    ports:
+      - '80:80'
+     volumes
+       -./nginx.conf:/etc/nginx/conf.d/default.conf:ro # ro read only
+    web:
+      image: httpd
+docker compose up -d
+docker compose logs
+docker compose --help
+docker compose ps
+docker compose top
+docker compose down
+
+assignment
+  =======
+ version: '2'
+   services:
+     drupal:
+       imamge: drupal
+       posrts:
+        -'8080:80'
+       volumes:
+         - drupal-modules:/var/www/html/moules\
+	 - drupal-profilesL/vr/www/html/profiles
+         - drupal-sites:/var/www/html/sites \
+         - drupal-theme:/varrr/www/html/themes
+      postgres:
+        image: postgres
+        environment:
+          -POSTGRESS_PASWORD=mypasswd
+    volumes:
+     drupal-modules:
+     drupal-profile:
+     drupal-sites:
+     drupal-theme:
+ docker-compose down -v /to remove volume
+
+  -------
+  version: '2'
+  services:
+   proxy:
+     build:
+       context: .
+       dockerfile: nginx.Dockerfile
+      image: nginx-custom
+      ports:
+        -'80:80'
+      web:
+        image: httpd
+        volumes:
+          - ./html:/usr/local/apach2/htdocs
+nginx.Dockerfile
+    FRROM nginx:1.11
+    copy nginx.conf /etc/nginx/conf.d/default.conf
+
+*******nginx config is missing
+docker-compose up
+docker-compose down
+docker image rm nginx-custom
+docker-compose down -rmi local /all #to remove image
+
+=====================================
+Assignment -compose
+FROM drupal:8.2
+run apt-grt update && apt-get install -y git \
+    && rm -rf /var/lib/apt/lists/* #delete chache files
+WORKDIR /var/www/html/themes
+RUN git clone --branch 8.x-3x --single-branch --depth 1 https://git.drupal.org/project/bootstap.git \
+    && chown -R www-data:www-data bootstrap
+WORKDIR /var/www/html # like cd
+version: '2'
+   services:
+     drupal:
+       imamge: custom-drupal
+       build: .
+       posrts:
+        -'8080:80'
+       volumes:
+         - drupal-modules:/var/www/html/moules\
+	 - drupal-profilesL/vr/www/html/profiles
+         - drupal-sites:/var/www/html/sites \
+         - drupal-theme:/varrr/www/html/themes
+      postgres:
+        image: postgres
+        environment:
+          -POSTGRESS_PASWORD=mypasswd
+        volumes:
+           - drupal-data:/var/li/postgresql/data
+           
+    volumes:
+      drupal-data
+      drupal-modules:
+      drupal-profile:
+      drupal-sites:
+      drupal-theme:
+docker compose up
+hostname local to postgres
+***********************8
+docker swarm
+docker node
+docker service
+docker stack
+docker secret
+manager(raft database) - worker
+
+docker swarm init
+to add a woker copy and past the token
+docker node ls
+docker node --help
+docker swarm --help
+docker service --help
+docker service create alpine 8.8.8.8(google something)
+docker service ls
+docker container ls
+docker service ps name or id of service
+docker service update id --relicas 3 #scale up
+blue green deplyment is done bring one down and update
+docker container rm -f name
+docker service rm name  # take out service
+
+get.docker.com
+play-with-docker.com
+docker machine
+-----------------
+
+tree node swarm
+================
+to add a node use token
+
+docker-machin env node1
+docker info
+docker swarm join
+docker swarm  --role manager node2 # promote to manager
+docker swarm join-token manager  # to get the token
+docker serice create --replicas 3 alpine ping 8.8.8.8
+docker service ls
+docker node ps node2
+docker-machine create node1
+
+docker service ps name of the container
+======================
+overlay
+
+docker network create --driver overlay my drupal
+docker network -ls
+docker service create --name psql --network my drupal -e POSTGRES_PASSWORD=mypass postgres
+docker service create --name drupal --network mydrupal -p 80:80 drupal
+watch docker service ls # to watch
+
+======================
+Routing Mesh ( load balancing betweent all service) stateless load balancing
+layer , not layer 4 (DNS)
+Nginx or HAproxy LB for statefull
+
+docker  service create --name search --replicas 3 -p 9200:9200 elasticsearch:2
+docker service ps search
+curl localhost:9200 # run again again to see the result
+
+===============
+
+Assignment Voting App
+****************************
+production no building
+swarm-app-1
+docker network create -d overlay backend
+docker network create -d ovealay fromend
+docker service create --name vote -p 80:80 --network frontend --replicas 2 docersamples/examplevotingapp_vote:before
+docker service create --name redis --network fromend --replicas 2 redis:3.2
+docker service create --name workerr --network fromtend --network backend dockersamples/examplevotingapp_worker
+docker service create --name db --network --mount type=volume, source=db-data,terget=/varr/lib/postgresql/data postgres:9.4
+docker service create --name result --network backend -p 5001:80 dockersamples/examplevotingapp_result:before
+
+docker seravice ls
+docker service ps
+docker service vote
+docker service redis
+docker service db
+dockerr service result
+docker service logs
+
+cat /etc/dockerr/demon.json
+deockerr service logs worker
+
+stacks:Prroduction
+******************************
+version: "3"
+services
+   redis:
+      image: redis:alpine
+      ports:
+        - "6379"
+      network:
+        - frontend
+      deploy:
+        replica: 2
+        update_config:
+          parallelism: 2
+          delay: 10s
+         restart_policy:
+            condition: on-failure
+    db:
+      image: postgres:9.4
+      volumes:
+        - db-data:/var/lib/postgresql/dat
+      networks:
+         -backend
+      deploy
+        placement:
+          constrains: [node.role == manager]
+     vote:
+       image: dockersamples/examplevotingapp_vote:before
+       ports
+          - 5000:80
+       networks
+          - frontend
+       depends_on
+          - redis
+       deploy
+         replicas: 2
+         update_config:
+           prallelism: 2
+         restart_policy:
+           condition: on-failure
+        result:
+          image: dockersamples/examplesvotiongapp_rsult:before
+          ports:
+            - 5001:80
+          networks:
+            -backend
+          depends_on:
+             -db
+           deploy:
+            replicas: 1
+            updte_config:
+              parallelism: 2
+              delay: 10s
+            restart_plicy:
+              condition: on-faliure
+        worker:
+           image: dockersamples/examplevotingapp_worker
+           neworks:
+             - frontend
+             - backend
+           deploy:
+              mode: replicated
+              replycas: 1
+              labels: [app=VOTTING]
+              restart_policy:
+                condition: on-failure
+                delay: 10s
+                max-attmpts: 3
+                window: 120s
+              placement:
+                constraints: [node.role == manager]
+docker stack deploy -c example-voting-app-stack.yml votepapp
+docker stack ls
+docker stack ps vote
+docker network ls
+
+for update run it again
+
+
+docker stack deploy
+docker stack help
+docker stack services voteapp
+
+secret 
+---------------
+works on memory
+docker secret create psql_user psql_use.txt
+echo "myDBpassWORD" | docker secret create psql_pass -
+docker seecret ls
+docker serrvie create --nam psql --secret psql_user --secret psq_pass -e POSTGRES_PASSWORD_FILE=/rrun/secrets/psql_pass
+-e POSTGRES_USER_FILE=/run/secrets/psql_user postgres
+docker service ps psql
+ls /run/secrets/
+cat /run/secrets/psql_user
+docker logs psql.1
+docker exec -it psql.1 bash
+
+docker service update --secret-rm
+
+secret in stack
+
+version "3.1"
+ services:
+    psql:
+      image: postgres
+      secrets:
+       - psql_user
+       - psql_password
+      environment:
+       POSTGRES_PASSWORD_FILE: /run/secrets/psql_password
+       POSTGRES_USER_FILE: /run/secrets/psql_user
+  secrets:
+    psql_user:
+      file: ./psql_user.txt
+    psql_password:
+      file: ./psql_pass.txt
+docker stack delpy -c docker-compose.yml mydb
+docker secret ls
+
+Assignment: Create stack w/ secrets
+version: '3.1'
+   services:
+     drupal:
+       imamge: drupal:8.2
+       posrts:
+        -'8080:80'
+       volumes:
+         - drupal-modules:/var/www/html/moules\
+	 - drupal-profilesL/vr/www/html/profiles
+         - drupal-sites:/var/www/html/sites \
+         - drupal-theme:/varrr/www/html/themes
+      postgres:
+        image: postgres:9.6
+        environment:
+          -POSTGRESS_PASWORD_File=/run/secrets/psql-pw
+        secrets:
+          psql-pw
+        volumes:
+           - drupal-data:/var/li/postgresql/data
+           
+    volumes:
+      drupal-data
+      drupal-modules:
+      drupal-profile:
+      drupal-sites:
+      drupal-theme:
+    secrets:
+      psql-pw:
+        externl: true
+
+echo "oooh880" | docker secret create psql-pw -
+docker stack deploy -c docker-compose.yml 
+
+use secret in local works for 11 compose and file base secrete
+
+ 
+docker-compose -d psql
+dockr-compose exec psql cat /run/secrets/psql_user
+d
+
+
+
+dorcker stack rm mydb
+
+-------------------
+swarm update examples
+=============================
+
+docker serrrvice update --imae myapp:1.21 srvicename
+docker service update --env-add NODE_ENV=prroduction --publish-rm 8080
+docker service web=8 api=6
+docker stack deploy -c file.yml servicename #swarm update
+
+dockerr service create -p 8088:80 --name web nginx:1.13.7 (producion alway use version)
+docker servic ls
+docker service scale web=5
+docker service update --image nginx:1.13.6 web
+
+docker service update --publish-rm 8088 --publish-add 9090:80 web
+
+docker serrvice update --force web # to rebalancing
+docker service remove
+
+in docker file
+
+HEALTHCHEK curl -f http://localhost/ || false
+HEALTHCHECK  --timeout=2s  --interval=3s --retries=3 \
+   CMD curl -f http://localhost/ || exit 1
+
+FROM nginx:1.13
+HEALTHCHECK    --interval=30s --timeout=3s\
+   CMD curl -f http://localhost/ || exit 1
+
+FROM postgres
+HEALTHCHECK    --interval=5s --timeout=3s\
+   CMD pg_isready -U prostgres || exit 1
+
+stack
+version: "2.1"
+services:
+  web:
+  image: nginx
+  healthcheck
+   test["CMD", "curl","-f","http://localhost"]
+   interval: 1m30s
+   timeout:10s
+   retries:2
+   start_periond:1m #vesion 3.4 minimum
+docker container run --name p1 -d posgres
+
+docker container ls
+docker container rrun --name 02 --health-cmd="ps_isready -U postgres || exit 1" postgres
+
+
+healthcheck in 1.12 in side container exit  0 (ok) or exit 1 (error)
+docker run \
+ --health-cmd="curl -f localhost:9200/_cluster/health|| false"\
+ --health-interval=5s \ # default 30s
+ --health-retries=3 \
+ --healh-timeout=2s \
+ --health-start-period=15s \
+ elasticsearch:2
+ 
+staring, unhealthy and healthy
+docker container run --name p1 -d postgres
+dockerr container run --name p2 -d --health-cm="og_isready -U prostgres||exit 1" postgres 
+docker container ls (again)
+docker container inspect
+docker service create --name p1 postgres
+docker service create --name p2 postgres --health-cm="og_isready -U prostgres||exit 1" postgres
+
+===================================================
+docker registry
+docker hub
+docker store donload docker other software and images
+docker cloud is for swarm
+
+Registry
+----------------
+secure registy with TLS
+storage cleanup  via Garbage Collection
+enable hub caching via --registry-mirrror
+
+
+doker container run -d -p 5000:5000 -name registry registry
+docker container ls
+docker pull hello-world
+ocker tag hello-world 127.0.0.1:5000/hello-world ( in local host)
+docker push 127.0.0.1:5000/helloworld
+docker container rm name of the 
+docker image ls
+docker image remove 
+docker contianer kill registry
+docker contianer rm registry
+docker container run -d -p 5000:5000 --name registry -v $(pwd)/registry-data:/var/lib/registry registry
+ll registy-data 
+   upstream servers {
+server web_1:8080;
+server web_2:8080;
+server web_3:8080;
+}
+
+server {
+listen 80;
+
+location / {
+proxy_pass http://servers;
+}
+}
+
+<html><body><h1>It works!</h1>
+<p>This is the default web page for this server.</p>
+<p>The web server software is running but no content has been added, yet.</p>
+</body></html>
+aws need to open port 2377
+   
+
+docker swarm join --token SWMTKN-1-4gdiy7audywfw897cyxm3jaf4au7cy6px75mjo3boma1p8qmeq-1pai857nojpu18ey1kx4f348h 172.31.83.35:2377
+
+version: '3'
+services:
+   proxy:
+      image: nginx
+      ports:
+         - '80:80'
+      volumes:
+         - ./nginx:/etc/nginx/conf.d
+      deploy:
+         replicas: 1
+      restart_policy:
+         condition: on-failure
+   web:
+      image: httpd
+      ports:
+         - '8080:80'
+      volumes:
+         - ./html:/usr/local/apache2/htdocs
+      deploy:
+         replicas: 2
+      restart_policy:
+         condition: on-failure
+
+docker node update --availability drain node
+
+docker run -v /var/lib/docker/swarm:/var/lib/docker/swarm rheinwein/inotifywait
+
+sudo cp -a /varr/lib/docker/swarm swarrmcopy
+sudo chown -R $(whoami) swarrmcopy/
+./swarm-rafttool -d swarrmcopy -dum-wal
+
+docker node update --label-add dc=a node1
+dockerr service create --nmr redis --replicas 12 --placemnt-prf 'spread=node.labels.dc'
+docker service scale=20 redis
+restore from a backup
+sudo rm -fr /var/lib/docker/swarm
+copy backu to var/lib/docker/swarm
+start ocker
+dockerr swarm init ( --forrce-new-cluster)
+
+sudo systemctl stop docker.serrvice
+
+$ mkdir -p certs
+mkdir -p certs 
+openssl req -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key -x509 -days 365 -out certs/domain.crt
+$ openssl req \
+  -newkey rsa:4096 -nodes -sha256 -keyout certs/domain.key \
+  -x509 -days 365 -out certs/domain.crt
+Be sure to use the name myregistrydomain.com as a CN.
+
+Use the result to start your registry with TLS enabled.
+
+Instruct every Docker daemon to trust that certificate. The way to do this depends on your OS.
+
+Linux: Copy the domain.crt file to /etc/docker/certs.d/myregistrydomain.com:5000/ca.crt on every Docker host. You do not need to restart Doer
+ cp certs/domain.crt /usr/local/share/ca-certificates/myregistrydomain.com.crt
+update-ca-certificates
+
+mkdir /etc/docker/certs.d
+mkdir /etc/docker/certs.d/127.0.0.1:5000 
+cp $(pwd)/certs/domain.crt /etc/docker/certs.d/127.0.0.1:5000/ca.crt
+Make sure to restart the docker daemon.
+
+pkill dockerd
+dockerd > /dev/null 2>&1 &
+
+mkdir registry-data
+docker run -d -p 5000:5000 --name registry \
+  --restart unless-stopped \
+  -v $(pwd)/registry-data:/var/lib/registry -v $(pwd)/certs:/certs \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  registry
+docker pull hello-world
+docker tag hello-world 127.0.0.1:5000/hello-world
+docker push 127.0.0.1:5000/hello-world
+docker pull 127.0.0.1:5000/hello-worldmkdirp
+
+     
+    
+
+
+

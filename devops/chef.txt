@@ -1,0 +1,145 @@
+file '/hello.txt' do
+ content 'Hello World'
+end
+sudo chef-client --local-mode(-z)
+hello.rb
+
+resources -> type , desire state
+package 'httpd' do
+  action :install
+end
+knife bootstrap server --ssh -- sudo -i  key -N web1
+knife node list
+
+knife run_list add web1
+
+knife node show web1
+chef-clent
+chef generate cookbook name
+knife node run_list add web1 "recipe[mychef-client]"
+knife role from the file role/web.rb
+sudo vim /etc/hosts
+
+ip  chef.domaincom chef
+
+hostname -f
+wget https://packages.chef.io/files/stable/chef-server/12.17.3/ubuntu/14.04/chef-server-core_12.17.3-1_amd64.deb
+
+dpkg -i chef-server*
+chef-server-ctl install chef-manage
+
+chef-serrver-ctl status
+chef-manage-ctl reconfigure -y
+Default Username: admin
+chef-server-ctl password admin
+abna123
+
+
+mkdir .chef
+chef-server-ctl user-create admin Arif Bhuiyan arif_bhuiyan@abna-inc.com password -f ~/.chef/admin.pem
+
+sudo chef-server-ctl org-create abna "abna-inc.com" --association_user admin -f ~/.chef/bogotobogo.pem
+ip-172-31-22-1
+
+    chef-server-ctl install opscode-manage
+    sudo opscode-manage-ctl reconfigure
+    chef-server-ctl reconfigure
+wget https://packages.chef.io/files/stable/chefdk/2.3.4/ubuntu/14.04/chefdk_2.3.4-1_amd64.deb
+dpkg -i chefdk*
+
+to install workstation  
+curl -L https://www.opscode.com/chef/install.sh | sudo bash  # to intall client
+sudo apt install chef
+sudo apt-get update
+sudo apt-get install git
+cd ~
+git clone https://github.com/opscode/chef-repo.git
+mkdir -p ~/chef-repo/.chef
+knife configure --initial
+/home/ubuntu/chef-repo/.chef/admin.pem
+/home/ubuntu/chef-repo/.chef/chef-validator.pem
+/etc/chef/validator.pem
+/home/ubuntu/chef-repo/.chef/knife.rb
+/home/your_user/chef-repo/.chef/knife.rb
+
+https://ec2-52-207-214-202.compute-1.amazonaws.com:443/organizations/abna
+ec2-52-207-214-202.compute-1.amazonaws.com
+sudo chef-client -d 60
+
+
+knife bootstrap ec2-54-175-109-122.compute-1.amazonaws.com -x ubuntu -P  -N client --sudo
+
+chmod 600 key1.pem
+knife bootstrap ec2-54-175-109-122.compute-1.amazonaws.com -x ubuntu --sudo -N web1 -i /home/ubuntu/chef-repo/.chef/key1.pem
+  
+
+
+knife ssl fetch https://ec2-x-x-x-x.compute-1.amazonaws.com
+
+search
+
+knife node show web1
+knife node show web1 -a node
+knife node show web1 -a ipaddress
+knife node show web1 -a memory.total
+knife search INDEX (client,node,role,envvironment, data_bags) "key:value"
+knife search node "*:*"
+node['cloud']['public_ipv4']
+
+berks install
+berks upload
+
+environment
+====
+knife environment list
+knife environment from file environments/acceptance.rb
+knife environment show envname
+knife node ernvironment set web2 envname
+knife cookbook list
+
+DataBag
+==========
+knife data bag list
+knife data bag create users
+{
+  "id": "user1",
+  "comment": "I am user 1",
+  "uid": "100",
+  "gid": "1",
+  "home": "/home/user1",
+  "shell":"/bin/bash",
+  "platform": "centos"
+
+}
+user1.json
+knife data bag from file users data_bags
+show users
+knife search users "*:*"
+chef generate cookbook cookbooks/myusers
+default.rb
+user 'user1' do
+     comment
+     uid
+     gid
+     homer
+     shell
+     action :create
+group "group1" do
+     memberrs 'user1'
+end
+
+search("users","key:value").each do | user_data
+  user user_data['id'] do
+   comment usrr_data['commernt']
+   uid userr_data['uid']
+   gid user_daa['gid']
+   home userr_data['home']
+   shell user_data['shell']
+
+screts
+
+openssl rand -base64 512 | tr -d '\r\n'   > secret-key
+knife data bag create secrret-users --scret-file secrect-key
+  end
+end
+knife vault

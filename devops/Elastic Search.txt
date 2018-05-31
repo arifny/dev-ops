@@ -1,0 +1,442 @@
+https://brew.sh # home brew
+
+/usr/bin/ruby -e "$(curl -fssl https://raw.githubuserconternt.com/Homebre/intall/masterr/inall)"
+brew install wget
+brew cask install java
+https://www.elastic.co/downloads elastic search and kibana
+cd elasticsearch
+bin/elaticsearch # will start elastic search
+curl http://localhost:9200
+
+kiban
+-----------------
+kibana.yml
+uncomment elastic search url
+run bin/kibana
+curl http://localhost:5601 # visualization tuls
+
+indexing
+
+put /{index}/{type}/{id}
+{ "field1": "value1",
+  "field2": "value2",
+..
+}
+
+put/vehicles/car/123
+{ "makes": "Honda",
+  "Color": "Black",
+  "HP": 250,
+  "milage": 24000,
+  "price": 19300.97
+}
+get/vehicles/car/123
+
+get/vehicles/car/123_source
+
+Head/vehicles/car/123 # if exist
+
+to update
+--------------
+POST/vehicles/car/123/_update
+{
+  "doc":{ 
+     "price": 19300.97
+   }
+
+to delete
+---------------
+delete /vehicles/car/123
+delete /vehicles # delete database
+}
+------------
+search
+
+get bbbusiness/employee/_search
+{"query": {
+   "term: :{ "name": "Honor"}
+}
+
+get /business/_search
+{
+  "query":{
+     "math_all":{}
+}
+
+curl -xget "http://localhost:9200/buiness?pretty"
+
+index could be devited into multiple shards
+
+shard # compose of inverted indices call segmment
+
+replica # copy of shards
+eS- analysis-inverted index-shard
+
+Remove stop world #like the
+lowercasing
+stemming # root word like swing and swim
+analysis - tokenization + filter
+searching -quering 
+match: "the thin" result thin
+synonyms # thin and skiny
+index setting and mapping
+
+in kebana
+==========
+put  /customers/online/123
+  { "name": "joe Swanson",
+    "geneder": "male",
+    "age": 30,
+     "total_spent": 275.50,
+     "is_new":false
+   }
+get /customers
+delete /customers
+
+PUT /customers
+{ "settings":{
+   "number_of_shards": 2
+   "number_of_replica": 1
+
+   
+  },
+    "mappings": {}
+  }
+}
+PUT /customers/_mpping/online
+{ "properties":{
+     "name":{
+       "type": "text",
+       "analyzer": "standard"
+    }
+   }
+}
+
+PUT /customers/_mpping/instore
+{ "properties":{
+     "name":{
+       "type": "text",
+       "analyzer": "standard"
+    },
+      "age":{
+        "type": "integer"
+    },
+      "total_spent":{
+         "type": "float"
+     },
+      "is_new":
+          "type": "boolean"
+    }
+}
+
+
+   }
+------------
+dynamic:
+false- indexing field will be ignored
+strict- indexing field will throw error
+
+GET customerrs/_mapping/online
+{ "dynamic": false
+}
+
+POST _analyze
+{
+  "analyzer": "whitespace",
+   "text": "The quick brown fox."
+}
+
+standered # whiespace and lowercase , puctuation is removed
+
+simple # same as standered also devied it on number
+read anatomy of analyzer
+
+PUT /courses/classroom/1
+{
+  "name":"Accountingg 101",
+   "room":"E3",
+   "professor":{
+     "name":"Thomas Baszo",
+     "depertment":"finamce",
+     "facultly_type":"part-time",
+     "email":"baszot@onuni.com"
+  }
+
+GET courses  # indexing document
+
+DLS for elastic search
+querying elastic search
+==========================
+query context
+filter context
+
+GET /cource/_search
+{
+  "query:{
+     "match_all:{}
+   }
+}
+}
+
+  GET /cource/_search
+{
+  "query:{
+     "match_all:{"name":"computer"}
+   }
+}
+}
+ GET /cource/_search
+{
+  "query:{
+     "exists:{"field":"professor.email"}
+   }
+
+GET /cource/_search
+{
+  "query:{
+    "bool"{
+     "must":[
+     {"match:{"name": "computer}},
+      {"match:{"room":"c8"}}
+     
+    ]
+   }
+ }
+
+GET /cource/_search
+{
+  "query:{
+    "bool"{
+     "must":[
+     {"match:{"name": "accounting}},
+      {"match:{"room":"e3"}}   
+      ],
+     "must_not":[
+        {"match":{"professor.name":"bill"}}
+      ]
+      "should":[
+       {"match":{"room":"e7"}}
+       ],
+       "minimum_should_match:1
+     }
+ }
+
+
+}
+}
+}
+}
+
+GET /cource/_search
+{
+  "query:{
+    "multi_match"{
+      "fields":["name", "professor.department"],
+      "query": "accounting"
+    }
+  }
+}
+Get /courses/_search
+{
+   "query": {
+      "match_phrase":{
+         "course_escription": "from the business school taken by fin"
+    }
+  }
+}
+
+Get /courses/_search
+{
+   "query": {
+      "range":{
+         "students_enrolled":{
+            "gte": 10,
+             "lte": 20
+       }
+     }
+  }
+
+jsonlit to validate json
+===========================
+
+GET /cource/_search
+{
+  "query:{
+   "bool":{
+    "filter"{
+      "match":{"name", "accounting"}
+      }
+      
+    }
+  }
+}
+
+   
+GET /courss/_search
+{
+  "query":{
+     "bool";{
+       "filter":{
+          "bool":{
+             "must:[
+                 {"match":{"professor.name":"bill"}},
+                 {"match":{"name": "accounting"}}
+               ],
+               "must_not":[
+                 {"match":{"room": "e7"}}
+                ]
+
+             }
+          },
+        "must":[
+           {"match":{"room":"e3"}}
+         ]
+       }
+    }
+}
+
+field boosting with ^
+-----------------------
+
+ PUT /vehicles/cars/_bulk
+{ "index": {}}
+{ "price" : 10000, "color" : "white", "make" : "honda", "sold" : "2016-10-28", "condition": "okay"}
+{ "index": {}}
+{ "price" : 20000, "color" : "white", "make" : "honda", "sold" : "2016-11-05", "condition": "new" }
+{ "index": {}}
+{ "price" : 30000, "color" : "green", "make" : "ford", "sold" : "2016-05-18", "condition": "new" }
+{ "index": {}}
+{ "price" : 15000, "color" : "blue", "make" : "toyota", "sold" : "2016-07-02", "condition": "good" }
+{ "index": {}}
+{ "price" : 12000, "color" : "green", "make" : "toyota", "sold" : "2016-08-19" , "condition": "good"}
+{ "index": {}}
+{ "price" : 18000, "color" : "red", "make" : "dodge", "sold" : "2016-11-05", "condition": "good"  }
+{ "index": {}}
+{ "price" : 80000, "color" : "red", "make" : "bmw", "sold" : "2016-01-01", "condition": "new"  }
+{ "index": {}}
+{ "price" : 25000, "color" : "blue", "make" : "ford", "sold" : "2016-08-22", "condition": "new"  }
+{ "index": {}}
+{ "price" : 10000, "color" : "gray", "make" : "dodge", "sold" : "2016-02-12", "condition": "okay" }
+{ "index": {}}
+{ "price" : 19000, "color" : "red", "make" : "dodge", "sold" : "2016-02-12", "condition": "good" }
+{ "index": {}}
+{ "price" : 20000, "color" : "red", "make" : "chevrolet", "sold" : "2016-08-15", "condition": "good" }
+{ "index": {}}
+{ "price" : 13000, "color" : "gray", "make" : "chevrolet", "sold" : "2016-11-20", "condition": "okay" }
+{ "index": {}}
+{ "price" : 12500, "color" : "gray", "make" : "dodge", "sold" : "2016-03-09", "condition": "okay" }
+{ "index": {}}
+{ "price" : 35000, "color" : "red", "make" : "dodge", "sold" : "2016-04-10", "condition": "new" }
+{ "index": {}}
+{ "price" : 28000, "color" : "blue", "make" : "chevrolet", "sold" : "2016-08-15", "condition": "new" }
+{ "index": {}}
+{ "price" : 30000, "color" : "gray", "make" : "bmw", "sold" : "2016-11-20", "condition": "good" }
+
+GET /vehicles/crs/_search
+{
+  "from":0,
+  "query": {
+  "size": 20,
+   "match_all:{}
+  }
+}
+
+Get /vehicles/ars/_search
+{
+"from": 0,
+"size":5,
+"query":{
+ "mach_all":{}
+"sort": [
+  {"price":{"order":"desc"}}
+  ]
+}
+Get /vehicles/ars/_search
+{
+  "query":{
+  "match":{"make": "dodge"}
+  }
+}
+Get /vehicles/ars/_count
+{
+  "query":{
+  "match":{"make": "dodge"}
+  }
+}
+
+Get /vehicles/cars/_search
+{
+  "aggs":{
+     "popular_cars":{
+       "terms":{
+          "field": "make.keyword"
+        },
+        "aggs":{
+         "avg_price":{
+            "avg":{
+              "field":"price"
+             }
+           },
+          "max_price":{
+            "max":{
+              "field":"price"
+             }
+        }
+ }
+}
+}
+
+stats : give max, min , avg
+
+bucket and matrix
+
+     "aggs":{
+       "sold_data_ranges":{
+         "range":{
+          "fieeld": "sold",
+          "range":[
+          { "from": "2016-01-01",
+           "to": "2016-05-18"},
+          { "from": "2016-05-18",
+           "to": "20167-01-01"},
+           ]
+
+}
+
+Logstash
+----------------
+
+kaggle.com
+clasifed add for cars
+
+logstash
+=============
+input { stdin {}}
+output {
+   elasticsearch { hosts => ["localhost:9200]}
+   stdout { codec => rubydebug}
+ }
+input{
+  file{
+   path => "/var/log/messages"
+   type => "syslog"
+  }
+   file {
+    path = "var/log/apache/access.log"
+    type => "apache"
+ }
+}
+
+bin/logstash -f logstash-simple.conf
+}
+},
+
+
+}
+
+https://elk-docker.readthedocs.io/
+
+
+
+
+ 

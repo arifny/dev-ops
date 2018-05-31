@@ -1,0 +1,788 @@
+rrrrrwget https://storage.googleapis.com/kubernetes-release/release/v1.1.3/kubernetes.tar.gz
+tar -xzvf kubernetes.tar.gz
+kubernetes/cluster/aws/util.sh
+kubernetes/cluster/aws/config-default.sh
+
+
+aws_access_key
+aws_secret_access_key
+
+ZONE=${KUBE_AWS_ZONE:-us-east-1c}
+MASTER_SIZE=${MASTER_SIZE:-t2.small}
+MINION_SIZE=${MINION_SIZE:-t2.small}
+NUM_MINIONS=${NUM_MINIONS:-2}
+AWS_S3_BUCKET=abna01
+AWS_S3_REGION=${AWS_S3_REGION:-us-east-1}
+DOCKER_STORAGE=${DOCKER_STORAGE:-aufs}
+INSTANCE_PREFIX="${KUBE_AWS_INSTANCE_PREFIX:-kubernetes}"
+CLUSTER_ID=${INSTANCE_PREFIX}
+AWS_SSH_KEY=${AWS_SSH_KEY:-$HOME/.ssh/kube_aws_rsa}
+IAM_PROFILE_MASTER="kubernetes-master"
+IAM_PROFILE_MINION="kubernetes-minion"
+LOG="/dev/null"
+MASTER_DISK_TYPE="${MASTER_DISK_TYPE:-gp2}"
+MASTER_DISK_SIZE=${MASTER_DISK_SIZE:-20}
+MASTER_ROOT_DISK_TYPE="${MASTER_ROOT_DISK_TYPE:-gp2}"
+MASTER_ROOT_DISK_SIZE=${MASTER_ROOT_DISK_SIZE:-8}
+MINION_ROOT_DISK_TYPE="${MINION_ROOT_DISK_TYPE:-gp2}"
+MINION_ROOT_DISK_SIZE=${MINION_ROOT_DISK_SIZE:-20}
+MASTER_NAME="${INSTANCE_PREFIX}-master"
+MASTER_TAG="${INSTANCE_PREFIX}-master"
+MINION_TAG="${INSTANCE_PREFIX}-minion"
+MINION_SCOPES=""
+POLL_SLEEP_INTERVAL=3
+SERVICE_CLUSTER_IP_RANGE="10.0.0.0/16"  # formerly PORTAL_NET
+CLUSTER_IP_RANGE="${CLUSTER_IP_RANGE:-10.244.0.0/16}"
+MASTER_IP_RANGE="${MASTER_IP_RANGE:-10.246.0.0/24}"
+MASTER_RESERVED_IP="${MASTER_RESERVED_IP:-auto}"
+ENABLE_CLUSTER_MONITORING="${KUBE_ENABLE_CLUSTER_MONITORING:-influxdb}"
+ENABLE_NODE_LOGGING="${KUBE_ENABLE_NODE_LOGGING:-true}"
+LOGGING_DESTINATION="${KUBE_LOGGING_DESTINATION:-elasticsearch}" # options: elasticsearch, gcp
+ENABLE_CLUSTER_LOGGING="${KUBE_ENABLE_CLUSTER_LOGGING:-true}"
+ELASTICSEARCH_LOGGING_REPLICAS=1
+if [[ ${KUBE_ENABLE_INSECURE_REGISTRY:-false} == "true" ]]; then
+  EXTRA_DOCKER_OPTS="--insecure-registry 10.0.0.0/8"
+fi
+ENABLE_CLUSTER_DNS="${KUBE_ENABLE_CLUSTER_DNS:-true}"
+DNS_SERVER_IP="10.0.0.10"
+DNS_DOMAIN="cluster.local"
+DNS_REPLICAS=1
+ENABLE_CLUSTER_UI="${KUBE_ENABLE_CLUSTER_UI:-true}"
+ADMISSION_CONTROL=NamespaceLifecycle,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota
+ENABLE_MINION_PUBLIC_IP=${KUBE_ENABLE_MINION_PUBLIC_IP:-true}
+KUBE_OS_DISTRIBUTION="${KUBE_OS_DISTRIBUTION:-vivid}"
+KUBE_MINION_IMAGE="${KUBE_MINION_IMAGE:-}"
+COREOS_CHANNEL="${COREOS_CHANNEL:-alpha}"
+CONTAINER_RUNTIME="${KUBE_CONTAINER_RUNTIME:-docker}"
+RKT_VERSION="${KUBE_RKT_VERSION:-0.5.5}"
+
+aws_access_key_id="AKIAIMX34TCBCTWS2ZZQ"
+aws_secret_access_key="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"
+
+
+port 31918
+
+export KUBERNETES_PROVIDER=aws
+$ bash cluster/kube-up.sh
+
+$ export PATH=/home/ec2-user/kubernetes/platforms/linux/amd64:$PATH
+$ kubectl get nodes
+$ kubectl get pods --namespace=kube-system
+$ kubectl run ttnd-nginx --image=nginx
+$ kubectl get pods
+kubectl get rc / repleca
+kubectl scale --replicas=1 rc /replicaname
+kubctl delete rc/replicaname
+
+===========
+deployments
+***********************
+create, update, rolling updates, roll back , pause/resume
+
+Replica Set next generation RC
+===============
+could be filered with set of values
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+   name: helloworld-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+         app: helloworld
+    spec:
+       conainers:
+        -name: k8-demo
+       ports:
+       -containerPort: 3000
+kubectl create -f deployment/helloworld.yml --record # change-cause
+
+kubeclt get deployments
+kubctl get rs
+kubectl get pods --show-labels
+kubetl rollout status deployment/helloworld-deployment (rollout means implementation)
+kubectl set image deloyment/helloworld-dployment k8s-demo=k8-demo:2 #to change the imge
+kubectl edit deploment/helloworld-deployment #to edit deployment object
+kuectl rollout status  deployment/helloworld 
+         /hitory show the history
+       undo  goes to previous version
+kubectl rollout undo deployment/helloworld-deplyment --to-revision=n #rollback to any verion
+
+kuberctl expose deployment helloworld-deployment --type+NodePort
+kubctl get service
+kubectl descripbe service helloworld-deployment
+
+=============
+change revision limit
+========================
+ revisionHistoryLimit: 100 # by default it keeps 2 record only
+
+Node labels
+----------
+kubctl label nodes node1 hardwar=high-spec
+
+kubctl crete -f file.yml
+
+
+
+-----------------------
+node selector
+apiVersion: extentions/v1beta1
+kind: Deployment
+metadata
+  name: hellowworld-deployment
+spec:
+  replicas: 3
+    metadata:
+     labels:
+       app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        imagee: wardvianene/k8-demo
+        portd:
+         - name: nodrjs-port
+           containerPort: 3000
+     nodeSelector:
+        hardware: high-spec
+kubectl label nodes minikube hardware=high-spec
+
+HEALTH check
+
+adding after pod
+
+###################
+   livenessProb:
+     httpGet:
+       path:/
+       port:3000
+    initialDlaySeconds: 15
+    timeoutseconds: 30
+##########################
+kubctl create -f .ymal
+
+kubctl describe one pods an look for Livenes result
+
+secrets
+===========================
+generate screts using files
+
+echo -n "root" >./username.txt
+echo -n "password" >./password.txt
+
+kubctl create secret gneric db-userpass --from-file --from-file=./password.txt
+kubectl ceate secret generic ssl-certificate --from-file=ssh-privatekey=~/.ssh/id_rsa --ss/-cert=mysslcert.crtr
+
+secrets-db-secre.yml
+==================
+apiVerrsion:v1
+kind: Secret
+metadata:
+  name: db-secret
+type: Opaque
+data:
+  password: base64 string
+  username: base64 string
+echo -n "root"|base64
+echo -n "password"|base64
+
+kubectl create -f secrets-db-secret.yml
+
+to use secret
+-----------------
+
+env:
+ -name:SECRET_USERNAME
+  valueFROM
+   secretKeyRef:
+    name: db-secret
+    key: username
+ -name:SECRET_PAASSWORD
+
+volumeMounts:
+ -name: credvolume
+  mountPath: /etc/creds  /etc/creds/dbsecrets/username  /etc/creds/dbsecrets/password
+  readOnly: true
+voulumes
+ -name: credvoulme
+ secret:
+  secretName: db-secrets
+
+web ui
+
+https://master/ui
+kubectl config view #to retrive pass
+=====
+
+
+Advance topics
+------------------------
+Service discovery
+DNS
+
+for dns need service definition
+/etc/kubernetes/addons 
+
+host app1-service
+app1-service has address 10.0.0.1
+
+nslookup servicename gives the dns
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: helloworld-secrreets
+type: Opaque
+data:
+  username: xxxx
+  passwor: xxx
+  rootPassword: xx
+  database: xxx
+kubectl create -f secret.yml
+
+database.yml
+
+apiVersion: vi
+metadata:
+   name: database
+   labelsL
+    app: database
+spec:
+  contianers:
+  - name: mysql
+    image: mysql:5.7
+    ports:
+    - name: mysql-port
+      containerPort: 3306
+    env:
+     - name: MYSQL_ROOT_PASSWORD
+       valueFrom:
+         secretKeyRef:
+            name: hellow-secrets
+            key: rootPassword
+     - name: MYSQL_USER
+       valueFrom:
+          secreteKeyRef:
+            name: hello-secrets
+            Key: username
+     - name: MYSQL_PASSWORD
+        valueFRrom:
+           secretKeyRef:
+             name: hellow-secret
+             key: database
+
+apiVersion: v1
+kind: Service
+metadata:
+   name: database-service
+spec:
+   ports:
+   -por: 3306
+    prrotocaol: TCP
+  selector:
+   app: database
+   type: NodePort
+
+helloworld.yml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+   name: helloworld-deployment
+spec:
+  repicals: 3
+  template:
+    metadata:
+      labels:
+       app: hellloworld-db
+    spec:
+      containers:
+       - name: k8s-demo
+         image: wardvianee/k8-demo
+         command: ["node", "index-db.js"]
+         ports:
+         - name: nodejs-port
+           contianerPort: 3000
+         env:
+           - name: MYSQL_HOST
+              value: database-serice
+            - name: MYSQL_USER
+               value : root
+            - name: MYSQL_PASSWORD
+               valueFrom:
+                  secretKeyRef:
+                    name: helloworld-secrets
+                    key: rootPassword
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secrettKeyRef:
+                   name: helloworld-secrets
+                   key: database
+
+kubectl logs helloworld-deployment-name
+
+connect with database 
+-------------
+kubectl exec database -it --mysql -u root -p
+
+
+show databases;
+use helloworld;
+show tables;
+kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
+nslookup helloworld-db-service
+kubectl delete pod busybox
+
+    
+         
+     
+ns lookup helloword-db-service
+
+configMap using file
+----------------------------------
+cat <<EOF > app.properties
+driver=jdbc
+database=postgres
+lookandfeel=1
+othertrparmas=xyz
+param.with.hierarchy=xyz
+EOF
+kubctl create configmap nginx-config --from-file=configmap/reverseproxy.conf--kub-
+
+volumeMounts:
+ - name: config-volume
+   mountPath:/etc/config
+volumes:
+ - name: config-volume
+  configMap
+   name: app-config
+
+env:
+ -name:DRIVER
+  valueFrom:
+   configgMapKeyRef:
+     name: app-config
+      kdy: driver
+ - name: DATABASE
+
+example;
+
+reverseproxy.conf
+
+server {
+   liten 80;
+   server_name localhsost;
+  location /{
+     proxy_bind 127.0.0.1;
+     proxy_pass htp://127.0.0.1:3000;
+  }
+
+  error_page 500 502 503 504 /50x.html;
+ }
+}
+
+kubectl create configmap nginx-config --from-file=reversproxy.conf
+kubctl get configmap
+kubctl get configmap nginx-config -o yaml
+
+apiVersion: v1
+kind: pod
+metdata:
+   name: helloworld-nginx
+   label:
+     app: helloworld-nginx
+spec:
+  containers:
+  - name: ngnx
+    image: nginx:1.11
+    portsL
+    - containerPort: 80
+    volumeMounts:
+    - name: config-voliume
+      mounPath: /etc/nginx/conf.d
+   -name: k8-deo
+    image: warrdvinee/k8s-demo
+    ports:
+   - containerPorrt: 3000
+  volumes:
+  - name: config-volume
+    configMap:
+      name: nginx-config
+      items:
+       - key: reverseproxy.conf
+         path; reverseproxy.conf
+      
+     
+
+Ingress controller helps to connect cluster from outside
+Ingress controller alternative to load balancer
+========================================
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+   name: helloworld-rules
+  spec:
+   rules:
+    - host: helloworld-v1.example.com
+      http:
+        paths:
+         - path: /
+           backend:
+             serviceName: helloworld-v1
+             servicePort: 80
+     - host: helloworld-v2.examole.com
+       http:
+        paths:
+         - path: /
+           backend:
+             serviceName: helloworld-v2
+             servicePort: 80
+  
+
+Volumes
+=======
+aws ec2 create-volume --size 10 --region usa-east-1 --availablility-zone  usa-east-1a --volume-type gp2
+
+NEED TO RRECORD THE VOLUME ID
+apiVersion: extensions/vibeta1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+spec:
+ replcas:1
+ termplate:
+   metadatta:
+     labels:
+       app: helloworld
+   spec:
+     containers:
+     -name: k8s-demo
+      image: wardviaene/k8s-demo
+       ports:
+       -name: nodejs-port
+         containerPort: 3000
+       vlolumeMounts:
+       - mountPath: /myvol
+         name: myvolume
+       volumes:
+       - name: myvolume
+         awsElasticBlockStore:
+           volumeID: id
+
+
+aws ec2 delete-volume --volme-id  volumeid
+
+
+Storageclass
+===================
+
+auto provisioned volumes
+storage.yml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metdata:
+  name:standard
+provioner: kubernates.io/aws-ebs
+parameterrs:
+  type:gp2
+  zone: us-east-1
+
+my-volume-claim.yml
+kind: PersistemtVolumeClaim
+apiVersion: v1
+metadata:
+  name: myclaim
+  annotations:
+    volume.beta.kuberrnetes.io/storage-class: "standard"
+spec:
+  accessModes:
+  - RaedWriteOne
+  resources:
+   requests:
+     storage: 8Gi
+
+my-pod.yml
+
+kind: Pod
+apiVrrsion: v1
+metadata:
+  name: mypod
+spec:
+  containers:
+   - name: myfronted
+     image: nginx
+     volumeMounts:
+      - mountPath: '/var/www/html'
+        name: mypd
+     volumes:
+     - name: mypd
+       persistentVolumeClaim:
+        claimName: myclaim
+
+
+
+wordpress-db.yml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: workpress-db
+spec:
+  replicas: 1
+  selector:
+    app: wordpress-db
+  template:
+    metadata:
+       name: wordpress-db
+       labels:
+         app: wordpress-db
+     spec:
+       containers:
+        - name: mysql
+          image : mysql:5.7
+          args:
+           - "--ignore-db-dir=lost+found" # ignoring because this will be present in ebs volume also
+          ports:
+           - name: mysql-porrt
+             containerPort: 3306
+          env: 
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                   name: wordpress-secrets
+                   key: db-password
+          volumeMounts:
+          - mountPath: "/var/lib/mysql"
+            name: mysql-storage
+
+apiVersion: v1
+kind: Service
+metadata:
+   name: wordpress-db
+spec:
+   ports:
+   - port: 3306
+     protocal: TCP
+   selecttor:
+     app: wordpress-db
+   type: NodePort
+
+nfs:
+   server: ec2 instancename
+   path:/
+
+aws efs create-file-system --creation-token 1
+aws efs create-mount-target --file-system-id fs-721bd23a --subnet-id subnet-f0f4c7df --security-group sg-8af7b7fc
+
+aws ec2 describe-instances #to get subnetid and security group
+  
+         
+
+kubectl create secrect generic db-user-pass --from-file=./username.txt --from-file=./password.txt
+health check
+-------------
+Pet Sets (stable pod hostname)
+pod sets for stateful app podname-x or hostname
+====================================================
+
+Demon sets / one pod per node
+heap star monitoring tools
+
+influxdb for monitoring
+
+visualiztion with grafana
+
+
+https://github.com/kubernetes/heapster clone
+cd heapster-master
+
+
+edit deploy/kube-config/grafana-service.yml comment addons
+edit heapser-service.yml  kubernetes.io/cluster-service: 'true'
+edit influsdb-service
+
+Auto scaling
+ENABLE_CUSTOM_METRICS TO TRUE
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+   name: hpa-example
+spec:
+   replicas: 3
+   templte:
+     metadata:
+        labels:
+           app: hpa-example
+     spec:
+       containers:
+        - name: hpa-example
+          image: grc.io/google_containerrs/hpa-example
+          ports:
+           - name: http-port
+             containerPorrt: 80
+          resources:
+           requests:
+             cpu: 200m
+
+apiVersion: v1
+kind: service
+metadata:
+  name: hpa-example
+spec:
+   ports:
+    - port: 3001
+      nodePort: 31001
+      targetPort: http-port
+      protocal : TCP
+   selectorr:
+      app: hpa-example
+   type: NodePort
+
+autoscaling
+------------------------------------
+
+apiVersion: autoscalling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+   name: hpa-example-autoscaler
+spec:
+   scaleTargertRef:
+     apiVersion: extensions/v1beta1
+     kind: Deployment
+     name: hpa-example
+    minReplicas: 1
+    maxReplicas: 10
+    targrtCPUtilizationPercentagee:50
+
+kubectl run -i --tty load-generator --image=busybox /bin/sh
+wget http://hpa-example.default.svc.cluster.local:31001
+
+while true; do wget -q -O- http://hpa-example.default.svc.cluster.local:31001; done
+kubectl get pod
+
+Namespaces
+
+kubectl create namespace myspace
+kubectl get namespaces
+
+to set a default namespace
+
+expor CONTEX=$(kubectl config view|awk'/currentt-context/{prin$2}')
+kubecl config set-context $CONTEXT --namespace=myspace
+
+apiVersion: v1
+kind: Namespace
+metadata:
+   name: myspace
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+   name: computr-resources
+   namespace: myspace
+spec:
+   hard:
+      request.cpu: "1"
+      request.memory: 1Gi
+      limits.cpu: "2"
+      limiys.memory: 2Gi
+
+###objects limit
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+   name: object-counts
+   namespace: myspace
+spec:
+  hard:
+    configmaps: "10"
+    persistentvolumerclainms: "4"
+    replicationcontrollers: "20"
+    secrets: "10"
+    serrvices: "10'
+    servics.loadbalancers: "2"
+
+kubectl get deploy --namespace=myspace
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata
+   name: helloworld-deployment
+   namespace: myspace
+spce:
+   replicas: 3
+   template:
+      labels:
+         app: helloworld
+   spec:
+     containers:
+      - name: k8s-demo
+        image: wardviane/k8s-demo
+        ports:
+         - name: nodejs-port
+           continerPort: 3000
+        resources:
+           requests:
+             cpu: 200m
+             memorrry: 0.5Gi
+           limits:
+             cpu: 400m
+             memory: 1Gi
+
+kubectl get rs/helloworld-deployment --namespace=myspace
+kubectl get quata --namespace=myspace
+
+apiVersion: v1
+kind: LimiRange
+metadta:
+  name: limits
+  namespace: myspace
+spec:
+   limits:
+   - default:
+       cpu: 200m
+       memory: 512Mi
+   - defaultRequest:
+      cpu: 100m
+      memory: 256Mi
+kubctl create - default.yml
+kubctl describe limts limits --namespace=myspace
+
+Authentication
+============
+adduser
+openssl req -new -key edward.pem -out edward-csr.pem -subj "/CN=edwrd/0=myteam/"
+
+sudo openssl x509 -req -in edwar-csr.pem -CA /var/lib/local/ca.crt -CAkey
+ /var/lib/local/cert/ca.key -CAcreateserial -out edward.crt -day 1000
+.kub config change edward.key and edward.crt
+
+Network
+
+flunnel network
+
+Node Maintenance
+
+to drain a node
+kubectl drain nodename --grace-period=600
+kubctl drain nodename --force
+
+Highavailability
+
+kops create cluster --name=abna-kube.com --state=s3://kops-state-001 --zones=us-east-1a,us-east-1b,us-east-1c --node-count=2 --node-size=t2.micro --master-size=t2.micro --dns-zone=abna-kube.com
+
+--master-zones=us-east-1a,us-east-1b,us-east-1c
+
+kops edit ig --name=abna-kube.com nodes --state=s3//kops-state-b429b
+
+kops edit ig --name=abna-kube.com master-zone --state=s3//kops-state-b429b
+
+
+
+
+
+

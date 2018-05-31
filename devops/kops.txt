@@ -1,0 +1,214 @@
+servicegithub kubernetes and look for latest 
+https://github.com/kubernetes/kops/releases/download/1.8.1/kops-linux-amd64
+https://github.com/kubernetes/kops/releases/download/1.7.1/kops-linux-amd64
+chmod +x kops-linux-amd64
+mv kops-linux-amd64 kops
+sudo mv kops /usr/local/bin/
+sudo apt-get update -y
+sudo apt-get install python-pip -y
+pip  install awscli
+
+aws configure
+
+secret key &b access key
+
+give user administrator access from piIAM
+
+# bucket for kops state
+ # get domain in route53
+to install kubctl...
++++++++++++++++===
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+
+
+chmod +x  kubectl
+sudo mv kubectl /usr/local/bin/
+
+kubectl
+
+
+'''''''''''''''''''
+ssh-keygen -f .ssh/id_rsa
+
+cat .ssh/id_rsa.pub
+
+
+export PATH=$PATH:/usr/local/bin
+
+create a hostered zone and copy all ns record and put under domain name
+
+zones - us-east-1( depending on what subnet you want)
+
+kops create cluster --name=abna-kube.com --state=s3://abna01 --zones=us-east-1c --node-count=2 --node-size=t2.micro --master-size=t2.micro --dns-zone=abna-kube.com
+
+
+to run
+==========
+list clusters with : Kops get cluter
+edit cluster: kops edit clustter abna.com
+
+*********************** this is must*******************
+to run the cluster
+ kops update cluster abna-kube.com --yes  --state=s3://abna01
+
+cat ~/.kube/config
+
+ https://api.abna-kube.com
+for deshboard
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+
+ server: --state=s3://abna01
+admin
+for dashboard
+kubectl create -f https://raw.githubusercontent.com/kubernetes/kops/master/addons/kubernetes-dashboard/v1.8.1.yaml
+
+
+to login  https://api.abna-kube/ui
+
+fW4wiQSswpAJbXXAqQXELHYtbz2rsKHG from config file
+kubectl get node
+
+open port 31918 custom tcp 
+abna01.com:31918/test
+
+kubectl create -f abna.yml
+to delete 
+===================
+kops delete cluster --name abna-kube.com --state=s3://abna01 -y
+ssh to the mater ssh -i  ~/.ssh/id_rsa admin@abna-kube.com
+
+kubectl get pod -o wide
+
+---
+
+pod defination
+appiVersion: v1
+kind: Pod
+metadata:
+   name: test
+   labels:
+      app: abna (key and value to filterout)
+spec:
+   containers:
+     -name: abna.yml
+      image:abna/images
+      ports:
+       -containerPort:80
+      imagePullPolicy: local
+
+list all Pods
+#kubctl get pods  - get all all pod
+#kubctl describe pod <pod>
+#kubctl expose pod <pod> --port=400 --name=frontend #expose service to new port
+#kubctl expose pod <pod> --port=NodePort --name=nodehellowworld
+kubeclt port-forwar <pod> 8080 #expose the port to the local machine
+kubctl attach <podname> -i  #attach to a pod
+kubctl exec <pod> --command #execute a command in the pod
+kubectl exec hellowworld -- ls app
+# - c for the speciic continer other then it gets the first container
+
+kubeclt label pods <pod> mylabel=awesome add a new label to a pod
+kubectl run -i --tty busybox --image=busybox --restart=Never -- sh #for debug from busy box you can comment with pod
+
+kubecl port-forward  abna 8081:3000
+kubectl pod abna --type=NodePort --name anything abna-service
+kubctl get service
+kubctl exec abna --ls /app
+
+Endpoint to connet to a service
+start a busy box and connect to endpoint
+
+telnet 172.17.0.5 3000
+GET /
+
+service defination with LB
+
+serrvice: helloworld-service.yml
+apiVersion: vi
+kind:Service
+metadata:
+   name: helloworld-service
+spec:
+   ports:
+     -port: 80
+      targtPort: nodejs-port
+      protocol: TCP
+    selectorr:
+       app: helloworld
+    type: LoadBalancer
+
+connct example.com with the loadbalancer
+
+12factor.net about best practice of stateless
+
+#kubectl get pods -0 wide
+
+get details about the Pod
+#kubctl descript pod Name
+
+get Pod details in JSON format
+#kubctl get pods -o json NAME
+Delete a POD
+#kubctl deelete pod name
+if YAML file is present
+kubectl delete -f YAML_FILE
+
+Delete a pod immeiately
+#kubectl delete pod foo --now
+kubctl exec containername -- ls/app
+
+Delete all pods
+# kubctl delete pods --all
+
+
+apiVersion: v1
+kind: Service
+metadata:
+   name: helloworld-service
+spec:
+  ports:
+  -port: 80
+   targetPort: nodejs-port
+   protocol: TCP
+  selector:
+   app: helloworld
+  type: LoadBalancer
+
+scaling rReplicationController
+
+
+apiVersion: v1
+kind:ReplicationController
+metadata:
+  name: hellowworld-controller
+spce:
+  replicas: 2
+  selectorL
+    app: helloworld
+  template
+    metadat:
+     labels:
+       app:  helloworld
+     spec:
+       containers:
+         -name: k8-demo
+          image
+          ports:
+          - containerPort: 3000
+
+kubctl scale --replicas=4 -f filename or replicacontroller name
+kubctl get rc
+kubctl scale --relicas=1 rc/replicaname
+kubctl delete rc/controllername
+
+31918
+kubectl get pod
+service is needed to access to container
+kubctl expose create the service
+create a service create the endpoint
+service can only be run from 30000-32767
+
+to run a pod in specific node
+--------------------
+kubectl label nodes node1 hardware=high-spec
+kubecl label nodes node2 hardware=low-spec

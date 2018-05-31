@@ -1,0 +1,33 @@
+mvn archetype:generate \
+    -DgroupId=com.mikechernev.docker.example \
+    -DartifactId=DockerExample \
+    -DarchetypeArtifactId=maven-archetype-webapp \
+    -DinteractiveMode=false
+
+docker run --rm -it -v $(pwd):/external -w /external maven mvn archetype:generate \
+    -DgroupId=com.mikechernev.docker.example \
+    -DartifactId=DockerExample \
+    -DarchetypeArtifactId=maven-archetype-webapp \
+    -DinteractiveMode=false
+
+docker run --rm -it -v $(pwd):/project maven mvn package -f /project
+
+docker run -it \
+    -p 8080:8080 \
+    -v $(pwd)/target/DockerExample.war:/usr/local/tomcat/webapps/ROOT.war \
+    -v $(pwd)/target/DockerExample:/usr/local/tomcat/webapps/ROOT \
+    tomcat
+
+version: '2'
+services:
+  web:
+    image: tomcat
+    ports: 
+      - "8080:8080"
+    volumes:
+      - ./target/DockerExample.war:/usr/local/tomcat/webapps/ROOT.war
+      - ./target/DockerExample:/usr/local/tomcat/webapps/ROOT
+
+docker run --rm -it -v $(pwd):/project -w /project maven mvn package && docker-compose up
+
+https://github.com/mikechernev/dockerised-java/tree/master/src/main/webapp

@@ -1,0 +1,529 @@
+#in ubbuntu
+sudo apt-get update
+sudo apt-gt upgrade
+sudo apt-get install redis.sever -y
+sudo cp /etc/redis/redis.conf /etc/redis/redis.conf.default
+redis.server
+
+6379
+
+redis-cti
+ping -> pong
+
+redish cli
+================
+set foo 100
+get foo 
+incr foo # increment
+decr foo # decris
+set bar 200
+exist bar
+del bar # delete value
+
+redish-cli echo hello
+redih-cli get foo
+rredish-cli incr foo > command.txt
+monitor # to monitor
+flushall # chash clear
+set server:name myserver
+get server:name
+set server:port 6379
+get server:port
+
+set resource:foo hello
+expir resource:foo 120
+ttl resource:foo # HOW MUCH timre left
+ttl -2 means resource was not set up
+ttl -1 means resource never expir
+
+mset key1 "val1" key2 "val2" # multiple value set
+msetnx key1 "val1" key2 "val2" if it is there not creating any
+mget key1 key1 # return multiple value
+append mykey "strintoappend"
+getrange mykey 0-1 # substring for envrighting
+rename mykey myrenamekey
+renamenx mykey myrenamekey #  cann't rename key be exist
+getset mykey "myval" reset key and return old value
+setex mykey 10 "hello" # settin value and ex after 10
+
+psetex mykey 1000 "hello" ime in millisecond 
+
+pttl # to show time left in millisecond
+persist my key # prmove timeout on a key
+setnx mykey "hello" creat a key if not exist and i exist dont do anything
+
++++++++=======
+example
+mset key1 "hello" key2 "world
+get key1
+mget key1 key2 
+msetnx key3 "test"
+get key3
+msenx key4 " something" key3 "Testing" # it desn't even run
+set greating " hello"
+get
+get mykey
+rename key2 mykey #retruns 0 
+set mystrring " this is my string"
+getrange 0 -1 # retruns everything
+getrange 0 5
+getset myvalue "new value" # returns old value
+get mykey # rrreturns new value
+flushall # remove all
+set key1 "hello"
+expire key1 10
+ttl key1
+setex key1 20 "hello" # same as above
+psetex key1 5000 'hello'
+pttl key1setex key1 120 " hello"
+ttl key1
+persist key1 # make is persist
+
+scan & match
+----------
+scan 0 #START RRROM 0
+scan count default is 10
+count can be changed from one iteraion to another
+match option
+------------
+scan 0 match something # example -> scan 0 match k*
+sscn for set -> return set
+hscan forr hash -> array
+zscan for sorted set -> return array
+random key
+
+example
+mset set key1 "1" key2 "2" key3 "3" key4 "4" key5 "5" key6 "6" key7 "7" key8 "8" key9 "9" key10 "10" key11 "11" key13 "13" key14 "14"
+scan 0 gives 10 value
+scan 13 gives rest
+scan 0 count 3 gives 3  and cursore 4
+scan 4 gives rest
+scan 0 match key1*
+Keys *
+keys key1*
+randomkey
+
+client nd config command
+---------------------
+config get port - fies port
+config get* - list all supported conig
+config get *max-*-entries* - hash-max-zipmap-entries,list-max-ziplist-entries
+config se configoption "newvalue"
+info # information
+info server
+conig resetstat # reset option
+command # return command
+command info get # like man
+command count # available number of ommand
+
+client list # reurns info and stats on the client connected to server
+client setname clientname
+client getname
+clint kill adrees:port
+client kill id
+example---------------
+
+
+confi get port
+config get * # give all config
+config get *max-*-entrries*
+config get lua-time-limit
+config ser lua-time-limit
+info
+info memmory # give memory
+command # list all commands
+command info readonly
+command count
+client list
+client kill 127.0.0.1:37212
+
+data structure
+=================
+lpush # push on left
+rpush # push on right
+lpush mylist a
+lrange # returns speified element of thee list
+lrange 0 -1 # conver everything
+llen # length
+lpop # remove first  element of lish
+
+example
+-------------
+lpush friends "Bob" # return 1 means succssesful
+lpush friens "Frre"
+rpush friends "Tony"
+lrange friends 0 -1
+lrange friends 12
+llen friends
+lpop friends
+rpop friends
+linsert friends before "Bob" "kevin"
+
+Set
+------------------
+sadd # add given vaues to adding set
+srem # remove set
+sadd carmakes "Toyata"
+srem crmakes "Homda"
+sismember # if it in the set return 1 if value is there sismember car
+smember # gives the list
+scrard #gives count
+smove # move one set to another
+suniun # combined 2 sets
+sdiff key1 key2 # return between 2 sets
+srandmember # returns rendom member from set srandmember 3 ( 3 randmembrr
+spop # remove random member spop carmakrs 3
+
+example
+----------
+sadd carkmakes "Toyota"
+Ford,Chavy , Honda
+sismember carmakes "Honda"
+smembers carmakes
+scrd carmakes
+sadd mycars "Acura"
+smove carmakes mycars "Toyota"
+smermbrers mycars
+smambers carmakes
+sunion carmakes mycars
+srandmember carrmakes 2
+spop carmakes
+smemebers carmakes
+
+Sorted sets
+===================
+Zadd  # adds to a sorted set
+zrem # removes from a sorted set
+Zrange #like lrange
+Zrevrange # hight to lowest
+zrrangebyscore # zrangebyscore people 1950 1990
+zrank # rank a member
+zrevrank # get rank in reverse order
+zcard # number of members
+zcount # returns number of elements in a sorted set between min and max
+zincrby  #increment 
+zscore #returns the score
+
+example
+-------------
+zadd  people 1970 "Jon Doe"
+zadd people "1985 "Sam Smith"
+Zadd people 1990 "Jem Williams"
+zrange people 0 -1
+zrangebyscore people 1970 1986
+zrank people "Sam Smith"
+zrank people "Jen Williams"
+Zrevrank people "Jen Willium"
+zcar people
+zincreby people 1 "Jon Doe" # incremented by one
+zscore people "John Doe"
+
+Hashes
+----------
+Hset # set a field 
+Hmset # sets multiple values
+hget # returns value
+hmget # returns values for multiple value
+hgetall # get all fields and values
+hdel # delet a field
+hexists # if a field exist return 1 if exist
+hincrby # increment by 1 
+Hkeys # all the keys
+hlen # number of keys
+hvals # returns all values
+hstrle # length of a value
+
+Example
+--------------
+hset user:john name "John Doe"
+hget user: john name
+hmset user:kate name "Kate Smith" emil "kate@gmil.com" age "30"
+hgert user:kate age
+hmget user:kate name age
+hgetall user:kate
+hkeys user:kate
+hvals user:kate
+hincby user:kate age 1
+hvals user:kate
+hdel user:katre age
+hgretall user:kate
+hlen user:kate
+
+persistence option RDB & AOF
+---------------------------------
+RDB - Redis Dtabase file [ more about backup ]
+AOF - append only file [ more about writing in the disk]
+
+save 60 100 # dump dataset to disk every 60 sec if at least 1000 keys changed
+
+Bgsave # save in background
+
+RDB and AOF in action
+-----------------------------
+sudo local *rdb  (dump.rdb)
+
+redis-cli
+set user:john "John Doe"
+set user:mary  "Mary Smith"
+set user:steve "Steve Williams"
+set user:derek "Derek Jackson"
+set user:george "George Samson"
+save
+exit
+cp /var/lib/redis/dump.rdb /home/arif/redis-backup
+sudo apt-get install -y rdiff-backup
+sudo rdiff-backup --preserve-numerical-ids /varr/lib/redis /home/arif redis
+
+sudo crontab -e 2 for nano
+
+0 0 * * * rdiff-backup --preserve-nymerical-ids  --no-file-statistic /var/lib/redis /home/arif/redis
+runs everyday 
+
+redis-cli
+-------------
+set user:mike "mike Wells"
+save
+runs sudo backup command again
+to setup aof
+--------------------
+redis-cli
+bgrewrieaof
+info to findout it is working
+------------
+sudo service redis-server stop
+sudo nano /etc/redis/redis.conf
+
+appendonly yes
+sudo service redis-server start
+ls /var/lib/redis
+run diff the see the aof file in home directory
+
+redis-cli
+Set user:tom "tom doe"
+exit
+
+install nodejs in ubuntu from pakage manager
+
+redis application
+----------------
+mkdir redistask
+------------------
+npm init
+
+name default
+version default
+des simple task manager
+app.js
+rest enter
+package.json
+
+add
+"depedencies": {
+   "express":"*"
+    "body-parser":"*",
+     "ejs":"^2.4.2",
+      "morgan":"*",
+      "redis":"*"
+  }
+npm install # insall all depe
+app.js inside redistask
+var express = requir('express');
+var path = require('path');
+var logger = require('morgn');
+//var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parse');
+var redis = require('redis');
+var app = express();
+
+//create Client
+var client = redis.createClient();
+client.on('connect', function(){
+   console.log('Redis Server Connected');
+ });
+
+//view engine setup
+app.set('views',path.join(_dirname,'view'));
+app.set('view engine','ejs');
+
+app.use(logger('dev;));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false }));
+app.use(express.static(path.join(_dirname,'public')));
+
+app.get('/', function(req, res){
+     res.send('Welcome!');
+ });
+
+app.listen(3000);
+console.log('Server Starte On portr 3000...');
+module.exports = app;
+
+node app
+localhost:3000
+
+sudo npm install nodemon -g
+
+nodemon
+
+create views folder
+create index.ejs
+hello
+
+res.render('index');
+
+var title = 'Task List';
+  res.render('index',{
+    title: title
+   });
+in index.ejs
+
+<%= title %>
+
+
+redis-cli
+lpush tasks "go Food Shopping"
+lpush taasks "Dinner with family"
+lpush tasks "Meeting at work"
+lrange tasks 0 -1
+
+
+client.lrange('tasks' 0, -1, function(err, reply){
+           res.render('index', {
+
+                    title: title,
+                    tasks: reply
+                   });
+           });
+<form method="post" action="/task/add">
+     <label>Add Task</label>
+     <inputt type="text" name="task" placeholdr="Add Task">
+     <input type="submit" value="Submit">
+</form>
+
+<%=tile %>
+<ul>
+<% tasks[foreach(function(task){ %>
+    <li><%=task%></li>
+  <%}) %>
+</ul>
+
+adding task
+---------------
+app.post('/task/add', function(req, res){
+   var task = req.body.task;
+   client.rpush('tasks', task, function(err, reply){
+     if(err){
+      console.log(err);
+    }
+     console.log('Task Aded.');
+     res.redirect('/');
+  });
+});
+
+Deleting task
+------------------
+<form method="post" action="/task/delete".
+  <ul>
+  <% tasks.forEach(function(task){ %>
+    <li>
+         <label>
+               <input type="checkbox" name="tasks" class="del" value="<%= task %>
+               <span><%= task %</span>
+          </label>
+     </li>
+     <% }) %>
+      </ul>
+    <input type="submit" value="Remove">
+</form>
+
+<html>
+  <head>
+     <titleRedisTasks</title
+     <link rel="stylshee" href="https://bootswatchcom/cerulean/boottrap.min.css">
+     <style>
+       .del:checked + span{
+         color:red;
+       }
+
+       .task.list{
+           list-style:none;
+       }
+      </style>
+  </head>
+  <body>
+
+
+
+
+app.post('/task/delete', function(req, res){
+   var tasksToDel = req.body.tasks;
+   client.lrange('tasks', 0, -1, function(err,task){
+      for(var i= 0; i < tasks.lenght;i++){
+        if(tskToDel.indexOf(tasks[i]) > -1){
+            client.lrem('tasks', 0, tasks[i], function(){
+               if(err){
+                   console.log(err);
+               }
+            });
+       }
+      res.redirct('/');
+  });
+});
+
+ <h3 Next Business Call</h3>
+ Name: <%= cll.name %><br>
+ company: <%= call.company %<br>
+  phoneL <%= call.phone %><br>
+  Time: <%= call.time %>
+<h3> Edit Next Call</h3>
+<form method="post' action="/call/add">
+   <label>Contact Name</label><br>
+   <input type="test" name="name" placeholcer="Task Name">
+   <br><br>
+   <label>Company</label><br>
+   <input type="text" name="company" placeholder="Company">
+   <br><br>
+   <label>Phone</label><br>
+   <input type="text" name="phone" placeholder="Phone">
+   <br><br>
+   <label>Dy & Time</label><br>
+   <input type="text" name="time" placeholder="Time">
+   <br><br>
+   <input type="submit" value=Submit">
+</form>
+</body>
+</html>
+
+app.post('/call/add', function(req,res){
+     var newcall = {};
+     newCall.name = req.body.name;
+     newCall.company = req.body.company;
+     newCall.phone = req.body.phone;
+     newCall.time = req.body.time;
+   
+     client.hmset('call', ['name', newcall.name, 'company', newCall.compny, 'phone', newCall.phone, 'time', newCall.time,function( err, reply){
+       if(err){
+          consol.log(err);
+        }
+        console.log(reply);
+        res.redirect('/');
+     })
+});
+
+
+hmget call name
+hmget call phone
+
+app.get('/', function(req, res){
+   var title = 'Task List';
+   client.lrange('tsks', 0 , -1, function(err, reply){
+     client.hgetall('call, function(err, call){
+         res.render('index', {
+         title: title,
+         tasks: reply
+          call: call
+      });
+    });
+  });
+
+

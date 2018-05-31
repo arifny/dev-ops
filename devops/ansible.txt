@@ -1,0 +1,749 @@
+yum -y install ansile
+
+
+ansible localhost -m ipify_facts
+ubuntu
+------------------
+sudo apt-get install software-properties-common    v=2.5.1
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt-get update
+sudo apt-get install ansible
+ansible --version
+ansible-playbook --version
+ansible galaxy --version
+
+ansible --list-hosts all # show lost of dummy host
+vi /etc/ansible/host
+local inventory #host list
+
+
+create a newhost inside ansible directory
+
+
+[loadbalancer]
+lb1
+
+[webserver]
+app01
+app02
+
+[database]
+db01
+
+[control]  # the servercontrol
+control ansible_connection=local
+
+creat
+ansible -i newhost --list-host all
+
+vi /etc/ansible/ansible.cfg # so that no need to pass -i anymore
+
+create ansible.cfg file and have the following entry
+[defaults]
+inventory = ./newhost
+[all:vars]
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file=./key1.pem
+ansible_python_interpreter=/usr/bin/python3
+
+
+-----------------------------------
+[defaults]
+inventory=./nHost
+ansible_python_interpreter=/usr/bin/python3
+#[all:vars]
+ansible_ssh_user=ubuntu
+private_key_file=./key1.pem
+host_key_checking = False
+~
+--------------------------------
+[Loadbalancer]
+lb1 ansible_python_interpreter=/usr/bin/python3  ansible_ssh_host=172.31.20.16
+
+[webserver]
+app01  ansible_python_interpreter=/usr/bin/python3 ansible_ssh_host=172.31.85.85
+app02  ansible_python_interpreter=/usr/bin/python3 ansible_ssh_host=172.31.26.12
+
+[database]
+db01  ansible_python_interpreter=/usr/bin/python3 ansible_ssh_host=172.31.27.84
+
+[control]  # the servercontrol
+ctr ansible_connection=local
+
+
+
+python3
+
+[loadbalancer]
+lb1 ansible_ssh_host=172.31.20.16
+[webserver]
+app01 ansible_ssh_host=172.31.85.85
+app02 ansible_ssh_host=172.31.26.12
+
+[database]
+db01 ansible_ssh_host=172.31.27.84
+
+[control]  # the servercontrol
+ctr ansible_connection=local
+
+aws doesn't need it
+''''
+
+ssh-keygen
+ssh-copy-id -i ~/.ssh/id_rsa.pub ubuntu@172.31.89.69
+
+ansible --list-host "*"
+ansible --list-host loadbalancer
+ansible --list-host database:control # both group future , will be replaced by :
+ansible --list-host webserver[0]
+ansible --list-host \!control
+
+chmod 0600 key1.pem
+ansible -m ping all
+ansible -m command -a "hostname" all # -a is argument
+same as ansible -a "hostname" all
+
+result
+-----
+hostname \status \reurncode
+
+in the document page module index has lots o modules
+
+playbooks
+hostname.yml
+---
+  - hosts: all
+    tasks:
+     - name: Get server hostname
+       command: hostname
+ansible-playbook playbook/hostname.yml
+
+4 things need for application
+pkg,service handeler,system cfg,configuration
+
+loadbalancer.yml
+---
+ - hosts: loadblancer
+  become: true  # brings super user previlage(sudo)
+  tasks:
+   - name: install nginx
+     apt: name=nginx state=present (or latest9to upgrade) or absent(RM)) update_cache=yes ( upgrade -y)
+   - name: configure nginx 
+     template:
+       src=../templates/nginx.conf.j2 dest=/etc/nginx/sites-available/nginx.conf mode=0644
+     notify: restart nginx
+    - name de-activate default nginx site
+      file: path=/etc/nginx/sites-enabled/default  state=absent
+       notify: restart nginx
+     - name: activate demo nginx site
+       file: src=/etc/nginx/sites-available/nginx.conf dest=/etc/nginx/sites-enabled/nginx.conf state=link
+       notify: restart nginx
+
+    - name: ensure nginx started
+     service: name=nginx state=started enabled=yes # state = started, restarted, stopeded
+    
+   handlers:
+     - name: restart nginx
+       service: name=nginx state=restarted
+
+    - hosts: control
+      tasks:
+      - name: verify end-to-end response
+        uri: url=http://{{item}} return_compotent=yes uri module check url
+        with_items: groups.loadbalancer
+        register: lb_index # register module keeps result
+      - fail: msg="index failed to retun content"
+         when: "hello, from sunny' not item.content"
+         with_items: "{{lb_index.rerults}}"
+
+       - name: verify end-to-end db response
+        uri: url=http://{{item}}/db return_compotent=yes #uri module check url
+        with_items: groups.loadbalancer
+        register: lb_db # register module keeps result
+
+      - fail: msg="db failed to retun content"
+         when: "Database Connected from' not item.content"
+         with_items: 
+
+       - hosts: loadbalancer
+      tasks:
+      - name: verify backend response
+        uri: url=http://{{item}} return_compotent=yes #uri module check url
+        with_items: groups.webserver
+        register: app_index   # register module keeps result
+      - fail: msg="index failed to retun content"
+         when: "hello, from sunny {{item.item}}' not item.content" #{{item.item}} is app01 , app02
+         with_items: "{{app_index.result}}"
+
+      - name: verify end-to-end db response
+        uri: url=http://{{item}}/db return_compotent=yes uri module check url
+        with_items: groups.webserver
+        register: app_db # register module keeps result
+
+      - fail: msg="db failed to retun content"
+         when: "Database Connected from {{iteem.item}}' not item.content"
+         with_items: "{{app_index.result}}
+  
+   
+   handlers:
+     - name: restart nginx
+       service: name=nginx state=restarted
+{% for host in groups['app_servers'] %}
+   server {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+{% endfor %}
+upstream servers {
+server web_1:8080;
+server web_2:8080;
+server web_3:8080;
+}
+
+server {
+listen 80;
+
+location / {
+proxy_pass http://servers;
+}
+}
+
+
+  wget -qO- http://lb1 | less
+  control.yml
+  ---
+  - hosts: control
+    become: true
+    taskes:
+     - name: install tools
+       apt: name:{{item}} state=present update_cache=yes
+       with_items:
+          - curl
+          - python-httplib2
+  
+
+  database.yml
+ ---
+  - hosts: database
+    become: true
+    tasks:
+       - name: install tools
+       apt: name={{item}} state=present update_cache=yes
+       with_items:
+         - mysql-server
+         - python-mysqldb
+     - name: Ensure mysql listning on all ports
+       lineinfile: dest=/etc/mysql/my.cnf regexp=^bind-address\s*=\s*127\.0\.0\.1\s*
+                   line=bind-address = 0.0.0.0
+         /etc/mysql/mysql.conf.d/mysqld.cnf  for ubuntu
+       notify: restrart mysql
+     - name: Ensure mysql started
+       service: name=mysql state=started enable=yes
+     - name: create test database
+       mysql_db: name={{db_name}} state=present
+     - name: create user
+       mysql_user: user={{db_user_name}} password={{db_user_password}}
+                  priv={{db.name}}.*:ALL host='{{db_user_host}}'
+                  state=present
+
+     handlers:
+       - name: restart mysql
+         service: name=mysql state=restarted
+curl app01/db
+curl app02/db
+
+ansible -a "netstat -an" db01 # to see the all runing ports
+
+ webserver.yml
+    - host: webserver
+      become:  true
+      tasks:
+        - name: intall web component
+           apt: name=apache2 state=present update_cache=yes # item is ginger variable
+           
+        - name: ensure apache2 start
+          service: name=apache2 stat=started enabled=yes
+ 
+        
+        - name : copy file
+          copy: src=../app/   dest=/var/www/html/  mode=0755
+          notify: restart apache2
+        
+    handlers: # service handler
+       -name: restart apache2
+        service: name=apache2 state=restarted
+
+<html><body><h1>It works!</h1>
+<p>This is the default web page for this server.</p>
+<p>The web server software is running but no content has been added, yet.</p>
+</body></html>
+
+
+    webserver.yml
+    - host: webserver
+      become:  true
+      tasks:
+         - name: intall web component
+           apt: name={{item}} state=present update_chache=yes # item is ginger variable
+           with_itmems:
+            - apache2
+            - libapache2-mod-wsgi # Python stack
+            - python-pip
+            - python-virtualenv
+            - python-mysqldb
+        -name: ensure apache2 start
+         service: name=apache2 stat=started enable=yes
+ 
+        -name: ensure mode-wsgi enabled
+          apache2_module: state=present name=wsgi
+          notify: restart apache2
+        - name : copy file
+          copy: src=demo/app/   dest=/var/www/demo  mode=0755
+        - name: copy apache virtual host config
+          copy: src=demo/demo.conf dest=/etc/apache2/sites-available mode=0755
+          notify: restart apache2
+        - name: de-acivrate default apache
+          file: path=/etc/apache2/site-enabled/000-default.con state=abcent
+          notify: restart apache2
+        - name: activate demo apache site
+          file src=/etc/apache2/site-available/demo.conf dest=/etc/apache2/site-enable/demo.conf state=link
+          notify: restart apache2
+
+
+    handlers: # service handler
+       -name: restart apache2
+        service: name=apache2 state=restarted
+
+ curl http://ap1
+
+
+<VirtualHost *>
+   WSGIDaemonProcess demo threads=5
+   WSGIScriptAlias / /var/www/demo/demo.wsgi
+  <Dirrectory /var/www/demo>
+    WSGIProcessGroup demo
+    WSGIapplicationGroup %{GLOBAL}
+    Order deny,allow
+    Allow from all
+   </Directory>
+ <VirtulHost>
+
+       
+ stack_restart.yml
+  # bring stack down
+  - hosts: loadbalancer
+    become: true
+    tasks:
+     - service: name=nginx state=stopped
+     - wait_for: port=80 state=drained
+  - hosts: webserver
+    become: true
+    tasks: 
+     - service: name=apache2 state=stopped
+     - wait_for: port=80 state=stopped
+   # restart mysql
+    - hosts: database
+      become: true
+      tasks:
+        - service: name=mysql state=restarted
+        - wait_for:host={{ansible_eth0.ip4.address}} port=3306 state=started
+
+   # bring stack up
+     - hosts: webserver
+       become: true
+       tasks: 
+        - service: name=apache2 state=started
+        - wait_for: port=80 
+     - hosts: loadbalancer
+       become: true
+       tasks:
+        - service: name=nginx state=started
+        - wait_for: port=80 
+
+templates folder
+------------------
+nginex.conf.j2
+upstream servers{
+{% for host in groups['webserver'] %}
+server {{ hostvars[host].ansible_ssh_host }}:80;
+{% endfor %}
+}
+
+server{
+  Listen 80;
+   
+  Location / {
+    proxy_pass http://demo
+ }
+}
+
+}
+  
+
+}
+
+stack_t.yml
+---
+- hosts: loadbalancer
+  beome: true
+  tasks:
+   - name: verify nginx service
+     command: service nginx status
+   - name: verify nginx is listening on 80
+      wait_for: port=80 timeout=1
+- hosts: webserver
+  beome: true
+  tasks:
+   - name: verify apache2 service
+     command: service apache2 status
+   - name: verify apache is listening on 80
+      wait_for: port=80 timeout=1
+- hosts: database
+  beome: true
+  tasks:
+   - name: verify mysql service
+     command: service mysql status
+   - name: verify mysql is listening on 3306
+      wait_for:host={{ansible_eth0.ip4.address}} port=3306 timeout=1
+ansible-playbook stack_status.yml
+
+==== galaxy====
+
+mkdir roles
+
+ansible-galaxy init control
+ansible-galaxy init nginx
+ansible-galaxy init apache2
+ansible-galaxy init demo_app
+ansible-galaxy init mysql
+
+control/tasks/main.yml -> get the task section from control.yml
+and replace with roles:
+                   - control
+roles_path=~/ansible/roles
+same with msql/tasks/main.yml && also handeler into handler/main.yml
+same with nginx and create templates and move nginx.conf.j2 and corection to the source of template
+
+devide webserver.yml into apach and demo_apps ..
+
+webserver.yml is now with 2 role
+---
+ - host webserver
+   become: true
+   roles:
+    - apache2
+    - demo
+mkdir demo_app/files and move all the files 
+
+site.yml
+---
+- import_playbook: control.yml
+- import_playbook: database.yml
+- import_playbook: webserver.yml
+- import_playbook: loadblancer.yml
+ansible-playbook site.yml
+
+fact variable
+-------------------
+ansible -m setup db01
+
+variable default
+role/mysql/default/main.yml
+db_name: test
+db_user_name: dbuser
+db_user_pass: dbpass
+db_user_host: localhost
+
+
+- python3-dev  / for ubuntu 16.04
+
+install python3-pip
+ pip mysqlclient
+vars
+
+-------------
+- host: database
+  become: true
+  roles:
+    - { role: mysql, db_name: demo, db_user_name: demo, db_user_password : demo, db_user_host: '%'}
+
+nginx
+=========
+default/main.yml
+
+---
+sites:
+  myapp:
+   frontend: 80
+   backend: 80
+
+nginx/tasks/main.yml
+
+
+name: configure nginx site
+template: src=nginx.conf.j2 dest=/etc/nginx/sites-available/{{ itemkey }} mode
+with_dict: siters
+notify: restart nginx
+
+same change with activate nginx site -> change demo and add with_dict: site
+
+nginex.conf.j2
+upstream {{ item.key}}{
+{% for server in groups.webserver%} #ginger loop
+   server {{server}}:{{ item.value.backend }};
+ {%endforr%}
+
+server{
+  Listen {{ item.value.fromtend }};
+   
+  Location / {
+    proxy_pass http://{{item.key}}
+ }
+}
+
+}
+  
+
+}
+
+#selective removal
+---------------------
+to remove unecessary files
+- name: active nginx sites
+  shell: ls -1 /etc/nginx/sites-enabled
+  register: active
+
+- name: de-activate sites
+  file: path=/etc/nginx/sites-enabled/{{ item }} state=absent
+  with_items: active.stdout_lines
+  when: item not in sites
+  notify: restart nginx
+
+demo.wsgi
+mkdir roles/demo_app/templates
+demo.wsgi.j2
+--------
+activate_this = '/var/www/demo/.venv/bin/activate_this.py'
+execfile(activate_this,dict(_file_=activate_this))
+
+import os
+os.environ['DATABASE_URI'] = 'mysql://{{ db_user }}:{{ db_pass }}@{{ groups.database[0] }}/{{db_name}}'
+
+import sys
+sys.path.insert{0, '/var/www/demo'}
+
+- name: copy demo.wsgi
+  template: src=demo.wsgi.j2 dest=/var/www/demo/demo.wsgi mode=
+notify: restart apache2
+
+from demo import app as application
+
+webserver.yml
+
+---
+- hosts: webserver
+  become: true
+  roles:
+   - apache2
+   - { role: demo_app db_name: demo, db_user: demo, deb_pass: demo }
+
+Group variables
+-------------------
+mkdir group_vars
+all.yml
+---
+   deb_name: demo
+   deb_user: demo
+   deb_pass: demo
+
+database.yml
+
+---
+- hosts: database
+ become: true
+ roles:
+   - role: mysql
+     db_user_name: "{{ db_user }}"
+     db_user_pass: "{{ db_pass }}"
+     db_user_host: '%'
+
+---
+- hostrs: webserver
+  become: true
+  roles: 
+    - apache2
+    - demo_app
+
+-------------
+varible: vault
+**************
+ansible-playbook --ask-vault-pass site.yml
+ansible-playbook --vault-password-file dev-password site.yml
+mv all vars
+mkdir all
+mv vars all
+export EDITOR=vi
+cd all
+ansible-vault create vault
+
+---
+vault_db_pass: uljlljoj0
+ansible-vault edit vault
+ansible-vault --ask-vault-pass 
+
+echo "masteringansible"> ~/.vault_pass.txt
+chmod 0600 !$
+
+
+ansible.cfg
+
+[defalts]
+inventory = ./dev
+vault_password_file = ~/.vault_pass.txt
+
+
+Make it fast
+------------------
+gather_facts = false
+
+chase_valid_time
+
+site.yml
+
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+   - name: update apt cache
+     apt: update_cache=yes cache_valid_time=86400
+- import_playbook: control.yml
+......
+......
+remove upat_cache=yes from different yml files
+
+limiting host
+---------------
+ansible-playbook site.yml --limit app01 # for one app
+
+tasts / main.yml
+---
+- name: install tools
+  apt: name={{ item}} state=present
+  with_items:
+    - curl
+    - python-httplibs
+  tgs: [ 'packages']
+ ansible-playbook site.yml --list-tags   #run where packages is present
+ ansible-playbook site.yml --skip-tags # to skip tag
+
+=================
+changed_when: false
+
+- name: get active sites
+  shell: ls -l /etc/nginx/sites-enable
+  register: active
+  changed_when: "active.stdout_lines != sites.key()"
+  tags: [ 'configure' ]
+================
+pipelining
+
+[ssh_connection]
+pipelining = True
+
+
+------- ignore_errors: true  # on error resume next
+
+run playbook step by step
+-------------------------
+ansible-playbook site.yml --step
+ansible-playbook site.yml --list-tasks # list all the tasks
+
+ansible-playbook site.yml --start-at-task "copy demo app sourc"
+
+to make fail and retry....
+-----------------------
+ansible-playbook site.yml --skip-tags "packages"
+less /home/ansible/site.retry
+
+ansible-playbook --limit @/home/ansible/site.retry
+
+syntax check..
+==================
+ansible-playbook --syntax-check site.yml
+
+ansible-playbook --check site.yml # dryrun
+
+Debug
+=====
+- debug: var=active.stdout_lineslb1 
+ansible-playbook site.yml --limit lb01 --start-at-task "get active site"
+- debug: var=vars
+
+ssh-keygn -t rsa
+testkey
+less ~/.ssh/autorized_keys
+vi ~/.ssh/autorized_keys
+past public key
+
+ssh -i ansible/testkey ansible@control
+
+jinja2
+variable
+filter
+
+ src=../templates/nginx.conf.j2 dest=/etc/nginx/sites-available/nginx.conf
+
+sudo apt-get autoremove nginx
+sudo apt-get --purge remove nginx
+sudo apt-get autoremove && sudo apt-get autoclean
+sudo find / | grep nginx | sudo xargs rm -rf
+the last command will remove the repository also so you've to add it again by:
+
+sudo add-apt-repository ppa:nginx/stable
+
+---
+ - hosts: database
+   become: true
+   tasks:
+    - name: Installing mysql
+      apt: name={{item}}  state=present update_cache=yes
+      with_items:
+        - mysql-server
+        - python3-pip
+        - python-mysqldb
+    - name: Installing mysql -python
+      pip: name=mysqlclient state=present
+    - name: Ensure mysql is running
+      service: name=mysql state=started enabled=yes
+    - name: Creating db
+      mysql_db: name=test state=present
+    - name: Create user
+      mysql_user: user=test password=test
+                  priv=test.*:All host=localhost
+                  state=present
+
+ tasks:
+       - name: Installing appache server
+         apt: name=apache2 state=present update_cache=yes
+       - name: Ensure server start
+         service: name=apache2 state=started enabled=yes
+       - name: Copy application
+         copy: src=../app/ dest=/var/www/html/ mode=0755
+         notify: Restart apache server
+    handlers:
+        - name: Restart apache server
+          service: name=apache2 state=restarted
+
+sudo apt-get remove --purge mysql*
+sudo apt-get purge mysql*
+sudo apt-get autoremove
+sudo apt-get autoclean
+sudo apt-get remove dbconfig-mysql
+sudo apt-get dist-upgrade
+sudo apt-get install mysql-server
+sudo apt-get purge mysql*
+sudo apt-get autoremove.
+sudo apt-get autoclean.
+sudo apt-get remove dbconfig-mysql.
+sudo apt-get dist-upgrade.
+sudo apt-get install mysql-server.
+
+
